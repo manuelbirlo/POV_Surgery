@@ -22,9 +22,6 @@ import argparse
 
 import mano
 
-import copy
-import gc
-
 from grabnet.tools.utils import euler
 from grabnet.tools.cfg_parser import Config
 from grabnet.tests.tester import Tester
@@ -156,14 +153,9 @@ def grab_new_objs(grabnet, objs_path, rot=True, n_samples=10, scale=1.,save_name
                                 save_dir=save_dir,
                                 mat_name = save_name
                                 )
-        """
-          Call torch.save(...) for each generated mesh (hand + object) in order to support running this script on docker containers where RAM can be limited. 
-          Otherwise the torch.save(...) command might not finish and will be aborted (reported via a "Killed" output in the terminal).
-        """
-        for i, mesh in enumerate(gen_meshes):
-            torch.save(mesh, f'OUT/{save_name}_{i}.pt')
-            del mesh  # Delete the reference to the mesh
-            gc.collect()  # Invoke garbage collector
+
+        torch.save(gen_meshes, 'OUT/' +save_name+'.pt')
+
 
 def load_obj_verts(mesh_path, rand_rotmat, rndrotate=True, scale=1., n_sample_verts=3000):
     np.random.seed(100)
