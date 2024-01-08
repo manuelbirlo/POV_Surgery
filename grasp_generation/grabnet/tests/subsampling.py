@@ -246,7 +246,7 @@ if __name__ == '__main__':
 
 
 
-    # obj_path = args.obj_path
+    obj_path = args.obj_path
     rhm_path = args.rhm_path
     # scale = args.scale
     n_samples = 100
@@ -260,7 +260,7 @@ if __name__ == '__main__':
     bps_dir = 'grabnet/configs/bps.npz'
 
     source_dir = './OUT'
-    obj_path = '/home/ray/Downloads/disk_recon_handle.ply'
+    #obj_path = '/home/ray/Downloads/disk_recon_handle.ply'
     save_name = obj_path.split('/')[-1].split('.')[0]+'_subsamples'  # args.save_name
     # wanted_id = [16, 83, 58, 157, 436]  $ scalpel
     # wanted_id = [8, 295, 212, 193, 134]
