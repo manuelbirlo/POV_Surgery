@@ -1,12 +1,25 @@
-./grasp_generation/grabnet/models/coarsenet.pt 
-./grasp_generation/grabnet/models/refinenet.pt 
 
 __pycache__/
 *.py[cod]
 *$py.class
 
+*.pkl
+*.ply
+*.pt
+*.pyc
+*.jpg
+*.zip
+*.tar
+*.npy
+*.npz
+*.obj
+*.mtl
+*.stl
+*.mat
 # C extensions
 *.so
+*.txt
+*.csv
 
 # Distribution / packaging
 .Python
@@ -38,20 +51,6 @@ MANIFEST
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
 
 # Translations
 *.mo
