@@ -38,6 +38,49 @@ from grabnet.tools.meshviewer import Mesh, MeshViewer, points2sphere
 
 from bps_torch.bps import bps_torch
 
+def create_rotation_matrices(rotation_angles_list):
+    """
+    Create rotation matrices based on a list of rotation angle sets.
+
+    Args:
+        rotation_angles_list (list): List of lists where each inner list represents a set of x, y, and z rotation angles
+                                     in degrees.
+
+    Returns:
+        list: List of rotation matrices.
+    """
+    rotation_matrices = []
+
+    for angles_set in rotation_angles_list:
+        if len(angles_set) != 3:
+            raise ValueError("Each inner list should contain exactly three rotation angles (x, y, z) in degrees.")
+
+        x_degrees, y_degrees, z_degrees = angles_set
+
+        # Convert degrees to radians
+        x_radians = np.radians(x_degrees)
+        y_radians = np.radians(y_degrees)
+        z_radians = np.radians(z_degrees)
+
+        # Create the rotation matrix for each axis
+        x_rotation_matrix = np.array([[1, 0, 0],
+                                      [0, np.cos(x_radians), -np.sin(x_radians)],
+                                      [0, np.sin(x_radians), np.cos(x_radians)]])
+
+        y_rotation_matrix = np.array([[np.cos(y_radians), 0, np.sin(y_radians)],
+                                      [0, 1, 0],
+                                      [-np.sin(y_radians), 0, np.cos(y_radians)]])
+
+        z_rotation_matrix = np.array([[np.cos(z_radians), -np.sin(z_radians), 0],
+                                      [np.sin(z_radians), np.cos(z_radians), 0],
+                                      [0, 0, 1]])
+
+        # Combine the rotations into a single rotation matrix
+        rand_rotmat = x_rotation_matrix.dot(y_rotation_matrix).dot(z_rotation_matrix)
+        
+        rotation_matrices.append(rand_rotmat)
+
+    return rotation_matrices
 
 def get_meshes(dorig, coarse_net, refine_net, rh_model, save=False, save_dir=None,mat_name =None):
     with torch.no_grad():
@@ -83,13 +126,18 @@ def get_meshes(dorig, coarse_net, refine_net, rh_model, save=False, save_dir=Non
                 rotmat = dorig['rotmat'][cId].T
                 obj_mesh = obj_mesh.rotate_vertices(rotmat)
                 hand_mesh_gen_rnet.rotate_vertices(rotmat)
+                combined = trimesh.util.concatenate( [hand_mesh_gen_rnet, obj_mesh] )
 
             gen_meshes.append([obj_mesh, hand_mesh_gen_rnet])
             if save:
-                save_path = os.path.join(save_dir, str(cId))
+                print("___SAVING____")
+                #save_path = os.path.join(save_dir, str(cId))
+                save_path = os.path.join(save_dir)
                 makepath(save_path)
-                hand_mesh_gen_rnet.export(filename=save_path + '/rh_mesh_gen_%d.ply' % cId)
-                obj_mesh.export(filename=save_path + '/obj_mesh_%d.ply' % cId)
+                combined.export(os.path.join(save_path,str(cId).zfill(6)+'_Combined.ply'))
+        
+                #hand_mesh_gen_rnet.export(filename=save_path + '/rh_mesh_gen_%d.ply' % cId)
+                #obj_mesh.export(filename=save_path + '/obj_mesh_%d.ply' % cId)
 
         return gen_meshes
 
@@ -117,9 +165,25 @@ def grab_new_objs(grabnet, objs_path, rot=True, n_samples=10, scale=1.,save_name
 
     for new_obj in objs_path:
 
-        rand_rotdeg = np.random.random([n_samples, 3]) * np.array([360, 360, 360])
+        #rand_rotdeg = np.random.random([n_samples, 3]) * np.array([360, 360, 360])
 
-        rand_rotmat = euler(rand_rotdeg)
+        rotation_angles_list = [
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0], 
+            [330.0, 0.0, 30.0]]
+           
+        rotations_in_deg = create_rotation_matrices(rotation_angles_list)
+
+        #rand_rotmat = euler(rand_rotdeg)
+        rand_rotmat = euler(rotations_in_deg)
+
         dorig = {'bps_object': [],
                  'verts_object': [],
                  'mesh_object': [],
@@ -140,6 +204,8 @@ def grab_new_objs(grabnet, objs_path, rot=True, n_samples=10, scale=1.,save_name
         dorig['verts_object'] = torch.cat(dorig['verts_object'])
 
         save_dir = os.path.join(grabnet.cfg.work_dir, 'grab_new_objects')
+        print("_________________save_dir____{}".format(save_dir))
+
         grabnet.logger(f'#################\n'
                        f'                   \n'
                        f'Saving results for the {obj_name.upper()}'
@@ -149,7 +215,7 @@ def grab_new_objs(grabnet, objs_path, rot=True, n_samples=10, scale=1.,save_name
                                 coarse_net=grabnet.coarse_net,
                                 refine_net=grabnet.refine_net,
                                 rh_model=rh_model,
-                                save=False,
+                                save=True,
                                 save_dir=save_dir,
                                 mat_name = save_name
                                 )
@@ -242,6 +308,8 @@ if __name__ == '__main__':
 
     cfg = Config(**config)
 
+    scale = 0.001
+    n_samples = 10
     grabnet = Tester(cfg=cfg)
     grab_new_objs(grabnet, obj_path, rot=True, n_samples=n_samples, scale=scale, save_name = save_name)
 
