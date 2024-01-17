@@ -1,7 +1,8 @@
 datasets:
     mesh_folder:
         data_folder: 'transfer_data/meshes/smplh'
-deformation_transfer_path: '/home/ray/code_release/POV_Surgery/data/bodymodel/smpl2smplx_deftrafo_setup.pkl'
+#deformation_transfer_path: '/home/ray/code_release/POV_Surgery/data/bodymodel/smpl2smplx_deftrafo_setup.pkl'
+deformation_transfer_path: '/root/POV_Surgery/data/bodymodel/smpl2smplx_deftrafo_setup.pkl'
 mask_ids_fname: 'smplx_mask_ids.npy'
 summary_steps: 100
 
@@ -16,7 +17,8 @@ optim:
 body_model:
     model_type: "smplx"
     gender: "neutral"
-    folder: "/home/ray/code_release/POV_Surgery/data/bodymodel/body_models"
+    #folder: "/home/ray/code_release/POV_Surgery/data/bodymodel/body_models"
+    folder: '/root/POV_Surgery/data/bodymodel/body_models'
     use_compressed: False
     use_face_contour: True
     smplx:

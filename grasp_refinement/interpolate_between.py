@@ -41,12 +41,12 @@ TPID = [744, 320, 443, 554, 671]
 # mano right hand location
 MANO_PATH = '../data/bodymodel/mano/MANO_RIGHT.pkl'
 # output folder location that contains all generated outputs
-OUTPUT_BASE = './refined_subsamples_interp/'
-OBJECT_LOCATION = '/home/ray/Downloads/Tools'
+OUTPUT_BASE = '../grasp_generation/logs/grab_new_objects'
+OBJECT_LOCATION = '/root/POV_Surgery/assets/'
 vhacd_exe = " optional path to vhacd executable"
 
 ### inmat for grabnet generated info
-inmat = '../grasp_generation/samples_near/diskplacer_subsamples/00001/generate.mat'
+inmat = '../grasp_generation/OUT/generate.mat'
 
 ###################################################################################################
 def load_obj_verts(mesh_path, rand_rotmat, rndrotate=True, scale=1., n_sample_verts=3000):
@@ -285,6 +285,8 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
         # recon_params, R_list, trans_list, r_list = [], [], [], []
 
         OUT_dir = os.path.join(OUTPUT_BASE, inmat.split('/')[-3], inmat.split('/')[-2])
+        print(OUT_dir)
+        exit
         os.makedirs(OUT_dir, exist_ok=True)
         all_generated = loadmat(inmat)
         all_order_list = []
@@ -292,10 +294,14 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
         interp_list = []
         # all_valid = loadmat( os.path.join( OUT_dir.replace('refined_subsamples_interp','refined_subsamples'), 'valid.mat'))
         # all_valid = all_valid['all_valid']
+        # all_valid = [int(temp.split('.')[0].split('_')[0]) for temp in
+        #              os.listdir(OUT_dir.replace('refined_subsamples_interp', 'refined_subsamples')) if
+        #              '.ply' in temp and 'Hand' in temp]
+        print(os.listdir(OUTPUT_BASE))
         all_valid = [int(temp.split('.')[0].split('_')[0]) for temp in
-                     os.listdir(OUT_dir.replace('refined_subsamples_interp', 'refined_subsamples')) if
+                     os.listdir(OUTPUT_BASE) if
                      '.ply' in temp and 'Hand' in temp]
-        selection_list = np.random.choice(all_valid, 30)
+        selection_list = np.random.choice(all_valid, 5)
         save_source_list = []
         save_target_list = []
         for i in range(len(selection_list) - 1):
@@ -307,6 +313,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
             save_source_list.append(selection_list[i])
             save_target_list.append(selection_list[i + 1])
             interp_list.append(this_frames_interp)
+            print(inmat)
             for temp_j in range(this_frames_interp):
 
                 source_frame = selection_list[i]
@@ -334,6 +341,13 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                                                                      degrees=True).as_matrix(),
                                                                  rndrotate=True,
                                                                  scale=0.001)
+                elif 'generate' in inmat:
+                    verts_obj, mesh_obj, rotmat = load_obj_verts('../assets/voluson_painted.ply',
+                                                                 all_generated['rotmat'][source_frame] @ Ro.from_euler(
+                                                                     'z', 0,
+                                                                     degrees=True).as_matrix(),
+                                                                 rndrotate=False,
+                                                                 scale=0.001)
                 else:
                     print('WRONG')
 
@@ -350,11 +364,12 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                 target_joints = torch.from_numpy(target_joints).float().to(device)
                 this_hand_pose = all_generated['hand_pose'][[source_frame], :]
                 this_transl = all_generated['transl'][[source_frame], :]
-                temp_hand = Mesh(filename=inmat[:-12] + str(source_frame).zfill(5) + '_Hand.ply')
+
+                temp_hand = Mesh(filename=OUTPUT_BASE +"/" + str(source_frame).zfill(6) + '_Hand.ply')
                 temp_hand_v = temp_hand.vertices
                 temp_hand_v = temp_hand_v @ rotmat.T
                 this_vert = torch.from_numpy(temp_hand_v).float().to(device)
-                temp_hand = Mesh(filename=inmat[:-12] + str(target_frame).zfill(5) + '_Hand.ply')
+                temp_hand = Mesh(filename=OUTPUT_BASE + "/" + str(target_frame).zfill(6) + '_Hand.ply')
                 temp_hand_v = temp_hand.vertices
                 temp_hand_v = temp_hand_v @ rotmat.T
                 target_vert = torch.from_numpy(temp_hand_v).float().to(device)

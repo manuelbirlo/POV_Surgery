@@ -17,7 +17,7 @@
 from typing import Tuple, Optional
 from copy import deepcopy
 #  from yacs.config import CfgNode as CN
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from omegaconf import OmegaConf
 
 from .loss_defaults import conf as loss_cfg, LossConfig
@@ -25,6 +25,22 @@ from .dataset_defaults import conf as dataset_cfg, DatasetConfig
 from .optim_defaults import conf as optim_cfg, OptimConfig
 from .body_model_defaults import conf as body_model_cfg, BodyModelConfig
 
+optim_cfg = OptimConfig()
+dataset_cfg = DatasetConfig()
+loss_cfg = LossConfig()
+body_model_cfg = BodyModelConfig()
+
+def create_optim_cfg():
+    return deepcopy(optim_cfg)
+
+def create_dataset_cfg():
+    return deepcopy(dataset_cfg)
+
+def create_loss_cfg():
+    return deepcopy(loss_cfg)
+
+def create_body_model_cfg():
+    return deepcopy(body_model_cfg)
 
 @dataclass
 class EdgeFitting:
@@ -56,16 +72,20 @@ class Config:
     batch_size: Optional[int] = 1
     color_path: str = 'data/smpl_with_colors.ply'
 
-    optim: OptimConfig = optim_cfg
-    datasets: DatasetConfig = dataset_cfg
-    losses: LossConfig = loss_cfg
-    body_model: BodyModelConfig = body_model_cfg
+    #optim: OptimConfig = optim_cfg
+    #datasets: DatasetConfig = dataset_cfg
+    #losses: LossConfig = loss_cfg
+    #body_model: BodyModelConfig = body_model_cfg
+    optim: OptimConfig = field(default_factory=create_optim_cfg)
+    datasets: DatasetConfig = field(default_factory=create_dataset_cfg)
+    losses: LossConfig = field(default_factory=create_loss_cfg)
+    body_model: BodyModelConfig = field(default_factory=create_body_model_cfg)
 
     deformation_transfer_path: str = ''
     mask_ids_fname: str = ''
 
     per_part: bool = True
-    edge_fitting: EdgeFitting = EdgeFitting()
-
+    #edge_fitting: EdgeFitting = EdgeFitting()
+    edge_fitting: EdgeFitting = field(default_factory=EdgeFitting)
 
 conf = OmegaConf.structured(Config)

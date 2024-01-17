@@ -53,7 +53,8 @@ def smooth_camera(pose, ratio = 0.3):
     # quats_all = np.stack(quats_all, axis=1)
     return R.from_quat(quats).as_euler('xyz',degrees=True)
 
-base_ply = '/home/ray/Downloads/zju-ls-feng/output/smplx/rotated_body_ply'
+#base_ply = '/home/ray/Downloads/zju-ls-feng/output/smplx/rotated_body_ply'
+base_ply = '/root/POV_Surgery/assets/transfer_surgical_Source'
 out_camera = base_ply.replace('rotated_body_ply','texture_rotate')
 os.makedirs(out_camera,exist_ok=True)
 max_1 = 0
@@ -67,6 +68,7 @@ transl_dict = np.zeros((max_1+1,3)) #{}
 rot_dict = np.zeros((max_1+1,3)) #{}
 grav_trans = None
 grav_rot = None
+
 def rotation_matrix_from_vectors(vec1, vec2):
     """ Find the rotation matrix that aligns vec1 to vec2
     :param vec1: A 3d "source" vector
@@ -159,10 +161,14 @@ for this_ply in os.listdir(base_ply):
     rot_dict[this_ply,:] = grav_rot#np.array([result_temp[0],result_temp[1],result_temp[2]])
 
 savemat(os.path.join(out_camera,'transl_dict_raw.mat'),{'transl_dict':transl_dict})
+print("______ saved matrix: {}".format(os.path.join(out_camera,'transl_dict_raw.mat'),{'transl_dict':transl_dict}))
+
 smooth_camera(rot_dict)
 savemat(os.path.join(out_camera,'rot_dict_raw.mat'),{'rot_dict':rot_dict})
+print("______ saved matrix: {}".format(os.path.join(out_camera,'rot_dict_raw.mat'),{'rot_dict':rot_dict}))
+
 # a = R.from_rotvec(original_dict['global_orient'])
-# r = R.from_euler('zyx',[0, 90, 0], degrees=True)
+# r = R.from_euler('zyx',[0, 90, 0], degrees=True)                                                                                                                                                                                                                                                                                                                                                                                                                               
 # OUT= R.from_matrix(a.as_matrix() @ r.as_matrix())
 # original_dict['global_orient'] = OUT.as_rotvec()
 # with open('/Users/wangrui/Downloads/debug_SMPL/00261_debug.pkl', 'wb') as handle:

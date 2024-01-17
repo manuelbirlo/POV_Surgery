@@ -15,7 +15,7 @@
 # Contact: Vassilis Choutas, vassilis.choutas@tuebingen.mpg.de
 
 from omegaconf import OmegaConf
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -27,7 +27,7 @@ class MeshFolder:
 class DatasetConfig:
     num_workers: int = 0
     name: str = 'mesh-folder'
-    mesh_folder: MeshFolder = MeshFolder()
-
+    #mesh_folder: MeshFolder = MeshFolder()
+    mesh_folder: MeshFolder = field(default_factory=MeshFolder)
 
 conf = OmegaConf.structured(DatasetConfig)

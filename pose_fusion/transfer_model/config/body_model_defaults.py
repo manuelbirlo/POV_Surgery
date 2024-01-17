@@ -16,7 +16,7 @@
 
 from omegaconf import OmegaConf
 from loguru import logger
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from .utils_cfg import Variable, Pose
 
 
@@ -28,7 +28,8 @@ class PCA:
 
 @dataclass
 class PoseWithPCA(Pose):
-    pca: PCA = PCA()
+    #pca: PCA = PCA()
+    pca: PCA = field(default_factory=PCA)
 
 
 @dataclass
@@ -43,44 +44,60 @@ class Expression(Variable):
 
 @dataclass
 class SMPL:
-    betas: Shape = Shape()
-    global_rot: Pose = Pose()
-    body_pose: Pose = Pose()
-    translation: Variable = Variable()
-
+    #betas: Shape = Shape()
+    #global_rot: Pose = Pose()
+    #body_pose: Pose = Pose()
+    #translation: Variable = Variable()
+    betas: Shape = field(default_factory=Shape)
+    global_rot: Pose = field(default_factory=Pose)
+    body_pose: Pose = field(default_factory=Pose)
+    translation: Variable = field(default_factory=Variable)
 
 @dataclass
 class SMPLH(SMPL):
-    left_hand_pose: PoseWithPCA = PoseWithPCA()
-    right_hand_pose: PoseWithPCA = PoseWithPCA()
-
+    #left_hand_pose: PoseWithPCA = PoseWithPCA()
+    #right_hand_pose: PoseWithPCA = PoseWithPCA()
+    left_hand_pose: PoseWithPCA = field(default_factory=PoseWithPCA)
+    right_hand_pose: PoseWithPCA = field(default_factory=PoseWithPCA)
 
 @dataclass
 class SMPLX(SMPLH):
-    expression: Expression = Expression()
-    jaw_pose: Pose = Pose()
-    leye_pose: Pose = Pose()
-    reye_pose: Pose = Pose()
-
+    #expression: Expression = Expression()
+    #jaw_pose: Pose = Pose()
+    #leye_pose: Pose = Pose()
+    #reye_pose: Pose = Pose()
+    expression: Expression = field(default_factory=Expression)
+    jaw_pose: Pose = field(default_factory=Pose)
+    leye_pose: Pose = field(default_factory=Pose)
+    reye_pose: Pose = field(default_factory=Pose)
 
 @dataclass
 class MANO:
-    betas: Shape = Shape()
-    wrist_pose: Pose = Pose()
-    hand_pose: PoseWithPCA = PoseWithPCA()
-    translation: Variable = Variable()
-
+    #betas: Shape = Shape()
+    #wrist_pose: Pose = Pose()
+    #hand_pose: PoseWithPCA = PoseWithPCA()
+    #translation: Variable = Variable()
+    betas: Shape = field(default_factory=Shape)
+    wrist_pose: Pose = field(default_factory=Pose)
+    hand_pose: PoseWithPCA = field(default_factory=PoseWithPCA)
+    translation: Variable = field(default_factory=Variable)
 
 @dataclass
 class FLAME:
-    betas: Shape = Shape()
-    expression: Expression = Expression()
-    global_rot: Pose = Pose()
-    neck_pose: Pose = Pose()
-    jaw_pose: Pose = Pose()
-    leye_pose: Pose = Pose()
-    reye_pose: Pose = Pose()
-
+    #betas: Shape = Shape()
+    #expression: Expression = Expression()
+    #global_rot: Pose = Pose()
+    #neck_pose: Pose = Pose()
+    #jaw_pose: Pose = Pose()
+    #leye_pose: Pose = Pose()
+    #reye_pose: Pose = Pose()
+    betas: Shape = field(default_factory=Shape)
+    expression: Expression = field(default_factory=Expression)
+    global_rot: Pose = field(default_factory=Pose)
+    neck_pose: Pose = field(default_factory=Pose)
+    jaw_pose: Pose = field(default_factory=Pose)
+    leye_pose: Pose = field(default_factory=Pose)
+    reye_pose: Pose = field(default_factory=Pose)
 
 @dataclass
 class BodyModelConfig:
@@ -96,12 +113,17 @@ class BodyModelConfig:
     use_face_contour: bool = True
     joint_regressor_path: str = ''
 
-    smpl: SMPL = SMPL()
-    star: SMPL = SMPL()
-    smplh: SMPLH = SMPLH()
-    smplx: SMPLX = SMPLX()
-    mano: MANO = MANO()
-    flame: FLAME = FLAME()
-
+    #smpl: SMPL = SMPL()
+    #star: SMPL = SMPL()
+    #smplh: SMPLH = SMPLH()
+    #smplx: SMPLX = SMPLX()
+    #mano: MANO = MANO()
+    #flame: FLAME = FLAME()
+    smpl: SMPL = field(default_factory=SMPL)
+    star: SMPL = field(default_factory=SMPL)
+    smplh: SMPLH = field(default_factory=SMPLH)
+    smplx: SMPLX = field(default_factory=SMPLX)
+    mano: MANO = field(default_factory=MANO)
+    flame: FLAME = field(default_factory=FLAME)
 
 conf = OmegaConf.structured(BodyModelConfig)

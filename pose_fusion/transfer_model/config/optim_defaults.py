@@ -16,7 +16,7 @@
 
 from typing import Tuple
 from omegaconf import OmegaConf
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -59,10 +59,14 @@ class OptimConfig:
     ftol: float = -1.0
     maxiters: int = 100
 
-    lbfgs: LBFGS = LBFGS()
-    sgd: SGD = SGD()
-    adam: ADAM = ADAM()
-    trust_ncg: TrustRegionNewtonCG = TrustRegionNewtonCG()
+    #lbfgs: LBFGS = LBFGS()
+    #sgd: SGD = SGD()
+    #adam: ADAM = ADAM()
+    #trust_ncg: TrustRegionNewtonCG = TrustRegionNewtonCG()
+    lbfgs: LBFGS = field(default_factory=LBFGS)
+    sgd: SGD = field(default_factory=SGD)
+    adam: ADAM = field(default_factory=ADAM)
+    trust_ncg: TrustRegionNewtonCG = field(default_factory=TrustRegionNewtonCG)
 
 
 conf = OmegaConf.structured(OptimConfig)

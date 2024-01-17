@@ -34,7 +34,7 @@ def parse_args(argv=None) -> OmegaConf:
     parser = argparse.ArgumentParser(formatter_class=arg_formatter,
                                      description=description)
 
-    parser.add_argument('--exp-cfg', type=str, dest='exp_cfg',
+    parser.add_argument('--exp-cfg', type=str, dest='exp_cfg', default="config_files/smplh2smplx.yaml",
                         help='The configuration of the experiment')
     parser.add_argument('--exp-opts', default=[], dest='exp_opts',
                         nargs='*',

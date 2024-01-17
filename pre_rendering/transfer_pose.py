@@ -14,21 +14,24 @@ from slerp_utils import quaternion_from_matrix, quaternion_slerp, quaternion_mat
 base_dir = '/root/POV_Surgery/assets/transfer_surgical_Source'
 ######################################3
 
-# The following two directories should exist upfront and contain objct .ply files and a whole body .ply file. 
+# The following two directories are being created in this script and don't need to exist upfront.
 rotated_body_ply = os.path.join(base_dir,'rotated_body_ply')
 rotated_object_ply = os.path.join(base_dir,'rotated_object_ply')
 os.makedirs(rotated_object_ply,exist_ok=True)
 os.makedirs(rotated_body_ply,exist_ok=True)
 
-# The following two directories are being created in this script and don't need to exist upfront.
+# The following two directories should exist upfront and contain objct .ply files and a whole body .ply file. 
 object_to_be_transfered = os.path.join(base_dir,'smplx_fitted_ply_Object')
 body_to_be_transfered = os.path.join(base_dir, 'smplx_fitted_ply')
 os.makedirs(object_to_be_transfered,exist_ok=True)
 os.makedirs(body_to_be_transfered,exist_ok=True)
 
+# If 'object_to_be_transfered' and 'body_to_be_transfered' contain the same number of files it doesn't matter
+# which folder to choose here, because list_ofPly just iterates over them in order to get the indices.
 #list_of_ply = os.listdir(body_to_be_transfered)
 list_of_ply = os.listdir(object_to_be_transfered)
 
+# It is assumed that 'object_to_be_transfered' and 'body_to_be_transfered' contain the same number of files.
 for i in tqdm(range(len(list_of_ply))):
 
     mesh_body = o3d.io.read_triangle_mesh(os.path.join(body_to_be_transfered, list_of_ply[i]))

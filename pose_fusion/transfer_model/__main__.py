@@ -47,16 +47,24 @@ def main() -> None:
     # ref_whole_name = '/home/rui/Downloads/disk_recon.ply'
     # transformed_mesh_name = '/home/rui/projects/sp2_ws/GraspTTA/refined_subsamples/friem_subsample/00295/00000_Object.ply'
 
-    refer_refence = '../grasp_refinement/refined_subsamples/diskplacer_subsamples/00001/'
-    refer_refence_seq = refer_refence.replace('refined_subsamples', 'refined_subsamples_interp')
-
+    #refer_refence = '../grasp_refinement/refined_subsamples/diskplacer_subsamples/00001/'
+    refer_refence = '/root/POV_Surgery/assets/transfer_surgical_Source/texture_rotate'
+    #refer_refence_seq = refer_refence.replace('refined_subsamples', 'refined_subsamples_interp')
+    refer_refence_seq = refer_refence # Not sure if this makes sense??
+    
 
     transformed_mesh_name = glob.glob(osp.join(refer_refence, '*Object.ply'))[0]
-    frames_info_mat = loadmat(osp.join(refer_refence_seq, 'interpolate.mat'))
+    print("_________ transformed_mesh_name _________ {}".format(transformed_mesh_name))
+
+    #frames_info_mat = loadmat(osp.join(refer_refence_seq, 'interpolate.mat'))
+    #frames_info_mat = loadmat(osp.join(refer_refence_seq, 'generate.mat'))
+    frames_info_mat = loadmat(osp.join('/root/POV_Surgery/grasp_generation/logs/grab_new_objects/grasp_generation/OUT', 'interpolate.mat'))
+
+    #print("_____________________frames_info_mat_____{}".format(frames_info_mat))
     dict_to_save = {}
 
-    base_source_dir = '/home/ray/Downloads/zju-ls-feng/output/smplx'
-
+    #base_source_dir = '/home/ray/Downloads/zju-ls-feng/output/smplx'
+    base_source_dir ='/root/POV_Surgery/assets'
     # ref_handle = trimesh.load(
     #     ref_handle_name,
     #     process=False)
@@ -66,14 +74,24 @@ def main() -> None:
     #     process=False)
 
     transformed_mesh = trimesh.load(transformed_mesh_name, process=False)
+    print("___ transformed_mesh __________ {}".format(transformed_mesh))
+
     # transformed_mesh_hat = get_alignMesh_as2(np.array(ref_handle.vertices),np.array(ref_whole.vertices),np.array(transformed_mesh.vertices))
     logger.remove()
     logger.add(lambda x: tqdm.write(x, end=''), level=exp_cfg.logger_level.upper(), colorize=True)
-    exp_cfg.datasets.mesh_folder.data_folder = osp.join(base_source_dir, 'smpl_ply')
-    frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in os.listdir(osp.join(base_source_dir, 'smpl_ply'))]
+    #exp_cfg.datasets.mesh_folder.data_folder = osp.join(base_source_dir, 'smpl_ply')
+    exp_cfg.datasets.mesh_folder.data_folder = osp.join(base_source_dir)
+    #frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in os.listdir(osp.join(base_source_dir, 'smpl_ply'))]
+    frame_list = [int(temp.split('.')[0]) for temp in os.listdir(osp.join(base_source_dir, 'smpl_ply'))]
+
+    #print(os.listdir(osp.join(base_source_dir)))
+    #frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in os.listdir(osp.join(base_source_dir))]
     output_folder = osp.expanduser(osp.expandvars(exp_cfg.output_folder))
-    seg_30 = np.random.choice(frame_list, 29)
+
+    frame_list = frame_list[:4]
+    seg_30 = np.random.choice(frame_list, 5)
     seg_30.sort()
+    print(frames_info_mat['save_source_list'][0])
     # seg_30.append(max(frame_list))
     pointer = 0
 
@@ -92,8 +110,8 @@ def main() -> None:
         elif this_infer_num < frames_info_mat['interp_list'][0][pointer]:
             temp = frames_info_mat['save_source_list'][0][pointer]
             temp_t = frames_info_mat['save_target_list'][0][pointer]
-            temp_path = osp.join(refer_refence_seq, str(temp).zfill(5) + '_' + str(temp_t).zfill(5) + '_' + str(
-                this_infer_num) + '_Hand.ply')
+            #temp_path = osp.join(refer_refence_seq, str(temp).zfill(5) + '_' + str(temp_t).zfill(5) + '_' + str(this_infer_num) + '_Hand.ply')
+            temp_path = osp.join(refer_refence_seq, str(temp).zfill(6) + '_Hand.ply')
             all_refer_hand_path.append(temp_path)
             this_infer_num = this_infer_num + 1
             this_local_index = this_local_index + 1
@@ -114,7 +132,7 @@ def main() -> None:
     os.makedirs(output_folder, exist_ok=True)
 
     model_path = exp_cfg.body_model.folder
-
+    print(model_path)
     body_model = build_layer(model_path, **exp_cfg.body_model)
     logger.info(body_model)
     body_model = body_model.to(device=device)
@@ -143,7 +161,11 @@ def main() -> None:
             if torch.is_tensor(batch[key]):
                 batch[key] = batch[key].to(device=device)
         paths = batch['paths']
-        batch_frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in paths]
+        
+        #batch_frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in paths]
+        print("_________ temp _______ {}".format(paths))
+        print("_____ all_refer_hand_path _________ {}".format(all_refer_hand_path))
+        batch_frame_list = [int(temp) for temp in paths]
         seg_list = all_refer_hand_path[batch_frame_list]
 
         var_dict, additional_dict = run_fitting(exp_cfg, batch, body_model, def_matrix, mask_ids, segment_list=seg_list)
