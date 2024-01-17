@@ -13,7 +13,7 @@
 # for Intelligent Systems. All rights reserved.
 #
 # Contact: Vassilis Choutas, vassilis.choutas@tuebingen.mpg.de
-from pampjpe_err import get_alignMesh
+#from pampjpe_err import get_alignMesh
 from typing import Optional, Dict, Callable
 import sys
 import open3d as o3d
@@ -22,7 +22,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import trimesh
-
+#import sys
+#sys.path.append('/root/POV_Surgery/pose_fusion/transfer_model/utils')
 from tqdm import tqdm
 
 from loguru import logger
