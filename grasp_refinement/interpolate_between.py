@@ -40,13 +40,16 @@ TPID = [744, 320, 443, 554, 671]
 
 # mano right hand location
 MANO_PATH = '../data/bodymodel/mano/MANO_RIGHT.pkl'
-# output folder location that contains all generated outputs
-OUTPUT_BASE = '../grasp_generation/logs/grab_new_objects'
+# output folder location that contains all generated interpolated outputs
+OUTPUT_BASE = './refined_subsamples_interp/'
 OBJECT_LOCATION = '/root/POV_Surgery/assets/'
 vhacd_exe = " optional path to vhacd executable"
 
 ### inmat for grabnet generated info
-inmat = '../grasp_generation/OUT/generate.mat'
+### This path could be pointing to a 'generate.mat' of the subsampling results, for example '../grasp_generation/samples_near/voluson_painted_subsamples/00001/generate.mat/
+### or '../grasp_generation/samples_near/voluson_painted_subsamples/00003/generate.mat'
+SUBSAMPLING_RESULT_PATH = '../grasp_generation/samples_near/voluson_painted_subsamples/00001/'
+inmat = os.path.join(SUBSAMPLING_RESULT_PATH, 'generate.mat')  #'../grasp_generation/samples_near/voluson_painted_subsamples/00001/generate.mat'
 
 ###################################################################################################
 def load_obj_verts(mesh_path, rand_rotmat, rndrotate=True, scale=1., n_sample_verts=3000):
@@ -294,13 +297,19 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
         interp_list = []
         # all_valid = loadmat( os.path.join( OUT_dir.replace('refined_subsamples_interp','refined_subsamples'), 'valid.mat'))
         # all_valid = all_valid['all_valid']
-        # all_valid = [int(temp.split('.')[0].split('_')[0]) for temp in
-        #              os.listdir(OUT_dir.replace('refined_subsamples_interp', 'refined_subsamples')) if
-        #              '.ply' in temp and 'Hand' in temp]
-        print(os.listdir(OUTPUT_BASE))
+        # The actual output path of this script is 'refined_subsamples_interp' but the line below attempts to read information from the 'refined_subsamples' folder 
+        # which should have been created in the previous keypose_refinement.py-
+        #all_valid = [int(temp.split('.')[0].split('_')[0]) for temp in
+        #             os.listdir(OUT_dir.replace('refined_subsamples_interp', 'refined_subsamples')) if
+        #             '.ply' in temp and 'Hand' in temp]
         all_valid = [int(temp.split('.')[0].split('_')[0]) for temp in
-                     os.listdir(OUTPUT_BASE) if
+                     os.listdir(SUBSAMPLING_RESULT_PATH) if
                      '.ply' in temp and 'Hand' in temp]
+        
+        
+        print("______________Directory contents:", os.listdir(OUTPUT_BASE))
+        print("______________All valid files:", all_valid)
+
         selection_list = np.random.choice(all_valid, 5)
         save_source_list = []
         save_target_list = []
@@ -364,12 +373,11 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                 target_joints = torch.from_numpy(target_joints).float().to(device)
                 this_hand_pose = all_generated['hand_pose'][[source_frame], :]
                 this_transl = all_generated['transl'][[source_frame], :]
-
-                temp_hand = Mesh(filename=OUTPUT_BASE +"/" + str(source_frame).zfill(6) + '_Hand.ply')
+                temp_hand = Mesh(filename=inmat[:-12] + str(source_frame).zfill(5) + '_Hand.ply')
                 temp_hand_v = temp_hand.vertices
                 temp_hand_v = temp_hand_v @ rotmat.T
                 this_vert = torch.from_numpy(temp_hand_v).float().to(device)
-                temp_hand = Mesh(filename=OUTPUT_BASE + "/" + str(target_frame).zfill(6) + '_Hand.ply')
+                temp_hand = Mesh(filename=inmat[:-12] + str(target_frame).zfill(5) + '_Hand.ply')
                 temp_hand_v = temp_hand.vertices
                 temp_hand_v = temp_hand_v @ rotmat.T
                 target_vert = torch.from_numpy(temp_hand_v).float().to(device)
@@ -392,40 +400,40 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                 gt_full_joints = source_full_joints + (target_full_joints - source_full_joints) * (
                             temp_j + 1) / this_frames_interp
 
-                for j in range(300):  # non-learning based optimization steps
-                    optimizer.zero_grad()
+                # for j in range(300):  # non-learning based optimization steps
+                #     optimizer.zero_grad()
 
-                    recon_mano = rh_mano(betas=torch.from_numpy(this_hand_beta).float().to(device),
-                                         global_orient=torch.from_numpy(this_global_orient).float().to(device),
-                                         hand_pose=recon_param, transl=torch.from_numpy(this_transl).float().to(device))
+                #     recon_mano = rh_mano(betas=torch.from_numpy(this_hand_beta).float().to(device),
+                #                          global_orient=torch.from_numpy(this_global_orient).float().to(device),
+                #                          hand_pose=recon_param, transl=torch.from_numpy(this_transl).float().to(device))
 
-                    recon_xyz = recon_mano.vertices.float().to(device)  # [B,778,3], hand vertices
-                    recon_joints = recon_mano.joints.to(device)
+                #     recon_xyz = recon_mano.vertices.float().to(device)  # [B,778,3], hand vertices
+                #     recon_joints = recon_mano.joints.to(device)
 
-                    obj_nn_dist_affordance, _ = utils_loss.get_NN(obj_pc_TTT.permute(0, 2, 1)[:, :, :3], recon_xyz)
-                    cmap_affordance = utils.get_pseudo_cmap(obj_nn_dist_affordance)  # [B,3000]
+                #     obj_nn_dist_affordance, _ = utils_loss.get_NN(obj_pc_TTT.permute(0, 2, 1)[:, :, :3], recon_xyz)
+                #     cmap_affordance = utils.get_pseudo_cmap(obj_nn_dist_affordance)  # [B,3000]
 
-                    # predict target cmap by ContactNet
-                    if using_contactnet:
-                        recon_cmap = cmap_model(obj_pc_TTT[:, :3, :], recon_xyz.permute(0, 2, 1).contiguous())  # [B,3000]
-                        recon_cmap = (recon_cmap / torch.max(recon_cmap, dim=1)[0]).detach()
-                    else:
-                        recon_cmap = torch.zeros((1, 3000)).to(device)
+                #     # predict target cmap by ContactNet
+                #     if using_contactnet:
+                #         recon_cmap = cmap_model(obj_pc_TTT[:, :3, :], recon_xyz.permute(0, 2, 1).contiguous())  # [B,3000]
+                #         recon_cmap = (recon_cmap / torch.max(recon_cmap, dim=1)[0]).detach()
+                #     else:
+                #         recon_cmap = torch.zeros((1, 3000)).to(device)
 
-                    penetr_loss, consistency_loss, contact_loss, finger_contact_loss = TTT_loss(recon_xyz, rh_faces,
-                                                                                                obj_pc_TTT[:, :3,
-                                                                                                :].permute(0, 2,
-                                                                                                           1).contiguous(),
-                                                                                                cmap_affordance,
-                                                                                                recon_cmap)
-                    kp_weight = 100
-                    new_joint = torch.cat((recon_joints, recon_xyz[:, TPID, :]), 1)
+                #     penetr_loss, consistency_loss, contact_loss, finger_contact_loss = TTT_loss(recon_xyz, rh_faces,
+                #                                                                                 obj_pc_TTT[:, :3,
+                #                                                                                 :].permute(0, 2,
+                #                                                                                            1).contiguous(),
+                #                                                                                 cmap_affordance,
+                #                                                                                 recon_cmap)
+                #     kp_weight = 100
+                #     new_joint = torch.cat((recon_joints, recon_xyz[:, TPID, :]), 1)
 
-                    kp_loss = l2loss(new_joint * 1000, gt_full_joints * 1000)
-                    loss = kp_weight * kp_loss
+                #     kp_loss = l2loss(new_joint * 1000, gt_full_joints * 1000)
+                #     loss = kp_weight * kp_loss
 
-                    loss.backward()
-                    optimizer.step()
+                #     loss.backward()
+                #     optimizer.step()
                     # if j == 0 or j == 299:
                     #     print("Object sample {}, pose {}, iter {}, "
                     #           "penetration loss {:9.5f}, "
@@ -433,7 +441,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                     #           "contact loss {:9.5f}".format(batch_idx, i, j,
                     #                                         penetr_loss.item(), kp_loss.item(), contact_loss.item()))
 
-                for j in range(300):  # non-learning based optimization steps
+                for j in range(1501):  # non-learning based optimization steps
                     optimizer.zero_grad()
 
                     recon_mano = rh_mano(betas=torch.from_numpy(this_hand_beta).float().to(device),
@@ -474,6 +482,9 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                     elif 'friem' in inmat:
                         PENE_TRA = 0.01
                         loss = 20 * contact_loss + 10 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss + finger_contact_loss * 0
+                    elif "generate" in inmat:
+                        PENE_TRA = 0.02
+                        loss = 20 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss
                     else:
                         PENE_TRA = 0.01
                         loss = 100 * contact_loss + 0 * consistency_loss + 30 * penetr_loss + kp_weight * kp_loss + finger_contact_loss * 0
@@ -483,7 +494,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces,using_contactnet=Fal
                     # loss = 60 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss + finger_contact_loss*0   ### scalpel
                     loss.backward()
                     optimizer.step()
-                    if j == 0 or j == 299:
+                    if j % 300 == 0:
                         print("iter {}, "
                               "penetration loss {:9.5f}, "
                               "kp_loss loss {:9.5f}, "
