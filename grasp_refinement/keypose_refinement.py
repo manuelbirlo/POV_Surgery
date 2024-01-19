@@ -2,6 +2,7 @@ import argparse
 import os
 import pickle
 import sys
+import gc
 
 sys.path.append('.')
 sys.path.append('..')
@@ -41,7 +42,7 @@ MANO_PATH = '../data/bodymodel/mano/MANO_RIGHT.pkl'
 OUTPUT_BASE = './refined_subsamples/'
 OBJECT_LOCATION = '/home/ray/Downloads/Tools'
 vhacd_exe = " optional path to vhacd executable"
-inmat_this = '../grasp_generation/samples_near/diskplacer_subsamples/00001/generate.mat'
+inmat_this = '../grasp_generation/OUT/generate.mat'
 
 ###################################################################################################
 def load_obj_verts(mesh_path, rand_rotmat, rndrotate=True, scale=1., n_sample_verts=3000):
@@ -194,7 +195,7 @@ class Mesh(trimesh.Trimesh):
         return trimesh.util.concatenate(meshes)
 
 
-def intersect_vox(obj_mesh, hand_mesh, pitch=0.5):
+def intersect_vox_original(obj_mesh, hand_mesh, pitch=0.5):
     '''
     Evaluating intersection between hand and object
     :param pitch: voxel size
@@ -210,12 +211,57 @@ def intersect_vox(obj_mesh, hand_mesh, pitch=0.5):
     volume = inside.sum() / len(hand_points)  # * np.power(pitch, 3)
     return volume
 
+def intersect_vox(obj_mesh, hand_mesh, pitch=0.5, batch_size=10000):
+    try:
+        pitch = pitch * 2  # Increase pitch
+        
+        # Simplify the hand mesh (reduce vertices)
+        hand_mesh = hand_mesh.simplify_quadric_decimation(
+           int(hand_mesh.vertices.shape[0] * 0.5)
+        )
+        
+        # Voxelize the hand mesh
+        hand_vox = hand_mesh.voxelized(pitch=pitch)
+        hand_points = hand_vox.points
+        
+        # Initialize volume
+        volume = 0
+        
+        # Process in batches
+        for i in range(0, len(hand_points), batch_size):
+            batch_points = hand_points[i:i + batch_size]
+            inside = obj_mesh.contains(batch_points)
+            volume += inside.sum()  # Update volume
+        
+        volume /= len(hand_points)  # Normalize volume
 
-def mesh_vert_int_exts(obj1_mesh, obj2_verts):
-    inside = obj1_mesh.ray.contains_points(obj2_verts)
-    sign = (inside.astype(int) * 2) - 1
-    return sign
+        return volume
+    finally:
+        gc.collect()
 
+
+#def mesh_vert_int_exts(obj1_mesh, obj2_verts):
+#    inside = obj1_mesh.ray.contains_points(obj2_verts)
+#    sign = (inside.astype(int) * 2) - 1
+#    return sign
+
+def mesh_vert_int_exts(obj1_mesh, obj2_verts, batch_size=10000):
+    """Applys batch processing to reduce resource consumption"""
+    n_verts = obj2_verts.shape[0]
+    signs = []
+
+    for i in range(0, n_verts, batch_size):
+        batch_verts = obj2_verts[i:i + batch_size]
+        inside = obj1_mesh.ray.contains_points(batch_verts)
+        sign_batch = (inside.astype(int) * 2) - 1
+        signs.append(sign_batch)
+        
+        gc.collect()  # Collect garbage after processing each batch
+
+    # Concatenate results from all batches
+    signs = np.concatenate(signs)
+
+    return signs
 
 def show_pcd(list_1):
     a = []
@@ -253,13 +299,18 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
         ############################
 
         OUT_dir = os.path.join(OUTPUT_BASE, inmat.split('/')[-3], inmat.split('/')[-2])
+        print("_____________________ OUT_dir {}".format(OUT_dir))
         os.makedirs(OUT_dir, exist_ok=True)
         all_valid = []
         all_generated = loadmat(inmat)
         all_order_list = []
-
-        for i in range(len(all_generated['rotmat'])):
+        print(inmat)
+        print("________________________ {}".format(all_generated['rotmat']))
+        print("----------------------shape ------- {}".format(all_generated['rotmat'].shape[0]))
+        #for i in (len(all_generated['rotmat'])): #range(11,23):
+        for i in range(0, all_generated['rotmat'].shape[0] - 1):
             index_temp = i
+            print("____ INDEX ___ {}".format(index_temp))
             if 'friem' in inmat:
                 verts_obj, mesh_obj, rotmat = load_obj_verts('../data/TOOLS_Release/Friem_original.ply',
                                                              all_generated['rotmat'][index_temp] @ Ro.from_euler('z', 0,
@@ -280,6 +331,12 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
                                                                                                                  degrees=True).as_matrix(),
                                                              rndrotate=True,
                                                              scale=0.001)
+            if 'generate' in inmat:
+                verts_obj, mesh_obj, rotmat = load_obj_verts('../assets/voluson_painted.ply',
+                                                             all_generated['rotmat'][index_temp] @ Ro.from_euler('z', 0,
+                                                                                                    degrees=True).as_matrix(),
+                                                             rndrotate=True,
+                                                             scale=0.001)
             else:
                 print('WRONG')
             # verts_obj, mesh_obj, rotmat = load_obj_verts('/home/rui/Downloads/Tools/used_tool/Friem_original.ply',
@@ -293,7 +350,12 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
             this_joints = torch.from_numpy(this_joints).float().to(device)
             this_hand_pose = all_generated['hand_pose'][[index_temp], :]
             this_transl = all_generated['transl'][[index_temp], :]
-            temp_hand = Mesh(filename=inmat[:-12] + str(index_temp).zfill(5) + '_Hand.ply')
+            
+            print("___________________________ {}".format(inmat[:-12] + "test_meshes/" + str(index_temp).zfill(6) + '_Hand.ply'))
+            #temp_hand = Mesh(filename=inmat[:-12] + str(index_temp).zfill(6) + '_Hand.ply')
+            temp_hand = Mesh(filename=inmat[:-12] + "test_meshes/" + str(index_temp).zfill(6) + '_Hand.ply')
+        
+
             temp_hand_v = temp_hand.vertices
             temp_hand_v = temp_hand_v @ rotmat.T
             this_vert = torch.from_numpy(temp_hand_v).float().to(device)
@@ -306,7 +368,8 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
 
             l2loss = torch.nn.MSELoss()
 
-            for j in range(300):  # non-learning based optimization steps
+            #for j in range(1501):  # non-learning based optimization steps
+            for j in range(1501):
                 optimizer.zero_grad()
 
                 recon_mano = rh_mano(betas=torch.from_numpy(this_hand_beta).float().to(device),
@@ -344,23 +407,28 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
                 elif 'friem' in inmat:
                     PENE_TRA = 0.01
                     loss = 20 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss
+                elif 'generate' in inmat:
+                    PENE_TRA = 0.02
+                    loss = 20 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss
                 else:
                     PENE_TRA = 0.01
                     loss = 100 * contact_loss + 0 * consistency_loss + 30 * penetr_loss + kp_weight * kp_loss
 
                 loss.backward()
                 optimizer.step()
-                if j == 0 or j == 299:
+                if j % 300 == 0:
                     print("iter {}, "
                           "penetration loss {:9.5f}, "
                           "kp_loss loss {:9.5f}, "
                           "contact loss {:9.5f}".format(  j,
                                                         penetr_loss.item(), kp_loss.item(), contact_loss.item()))
+                gc.collect()
 
             # evaluate grasp
 
             obj_mesh = mesh_obj
 
+            print("_______rh_mano_________ ")
             final_mano = rh_mano(betas=torch.from_numpy(this_hand_beta).float().to(device),
                                  global_orient=torch.from_numpy(this_global_orient).float().to(device),
                                  hand_pose=recon_param, transl=torch.from_numpy(this_transl).float().to(device))
@@ -373,6 +441,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
             final_mano_verts = final_mano.vertices.squeeze(0).detach().cpu().numpy()  # [778, 3]
             all_order_list.append(final_mano.joints[0, 3, :].detach().cpu().numpy())
 
+            print("___________ trimesh_Trimesh_______")
             hand_mesh = trimesh.Trimesh(vertices=final_mano_verts, faces=rh_faces.squeeze(0).cpu().numpy())
 
             mesh_1 = o3d.geometry.TriangleMesh()
@@ -383,21 +452,56 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
             mesh_2.vertices = o3d.utility.Vector3dVector(obj_mesh.vertices)
             mesh_2.triangles = o3d.utility.Vector3iVector(obj_mesh.faces)
 
+            print("_____________ intersect_vox_______________")
             penetr_vol = intersect_vox(obj_mesh, hand_mesh, pitch=0.005)
+            print(penetr_vol)
             # contact
             penetration_tol = 0.005
-            result_close, result_distance, _ = trimesh.proximity.closest_point(obj_mesh, final_mano_verts)
-            sign = mesh_vert_int_exts(obj_mesh, final_mano_verts)
-            nonzero = result_distance > penetration_tol
+
+            print("____________________ closest point______________")
+            #result_close, result_distance, _ = trimesh.proximity.closest_point(obj_mesh, final_mano_verts)
+
+            # ---------------- batch processing to reduce memory usage -------------------------
+            # Assuming final_mano_verts is a numpy array of shape (n_verts, 3)
+            # and obj_mesh is a trimesh object
+
+            batch_size = 10 #1000  # Adjust batch size according to your memory constraints
+            n_verts = final_mano_verts.shape[0]
+
+            # Initialize an empty list to store the results
+            all_distances = []
+
+            for i in range(0, n_verts, batch_size):
+                # Create a batch of vertices
+                batch_verts = final_mano_verts[i:i + batch_size]
+                
+                # Process the batch
+                _, result_distance, _ = trimesh.proximity.closest_point(obj_mesh, batch_verts)
+                
+                # Store the results
+                all_distances.append(result_distance)
+                gc.collect()
+
+            # Combine the results from all batches
+            all_distances = np.hstack(all_distances)
+
+            # ----------------------------------------------------------------------------------------
+            print("____________________  mesh_vert_int_exts___")
+            sign = mesh_vert_int_exts(obj_mesh, final_mano_verts, batch_size=100)
+            #nonzero = result_distance > penetration_tol
+            nonzero = all_distances > penetration_tol
             exterior = [sign == -1][0] & nonzero
             contact = ~exterior
             sample_contact = contact.sum() > 0
+            print(sample_contact)
             # simulation displacement
 
             try:
+                print("______running simulation ....")
                 simu_disp = run_simulation(final_mano_verts, rh_faces.reshape((-1, 3)),
                                            obj_mesh.vertices, obj_mesh.faces,
                                            vhacd_exe=vhacd_exe, sample_idx=i)
+                print("..... completed simulation")
             except:
                 simu_disp = 0.00010
                 print('NO SIMULATE DISPLACEMENT PERFORMED!')
@@ -411,7 +515,6 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
                 all_valid.append(index_temp)
 
                 o3d.io.write_triangle_mesh(os.path.join(OUT_dir, str(index_temp).zfill(5) + '_Hand.ply'), mesh_1)
-
                 o3d.io.write_triangle_mesh(os.path.join(OUT_dir, str(index_temp).zfill(5) + '_Object.ply'), mesh_2)
                 output_path_pkl_addtion = os.path.join(OUT_dir, str(index_temp).zfill(5) + '_MANO.pkl')
 
