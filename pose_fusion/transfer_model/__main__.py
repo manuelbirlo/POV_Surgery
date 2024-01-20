@@ -18,6 +18,7 @@ import os
 import os.path as osp
 import pickle
 import sys
+import re
 
 import numpy as np
 import open3d as o3d
@@ -48,23 +49,36 @@ def main() -> None:
     # transformed_mesh_name = '/home/rui/projects/sp2_ws/GraspTTA/refined_subsamples/friem_subsample/00295/00000_Object.ply'
 
     #refer_refence = '../grasp_refinement/refined_subsamples/diskplacer_subsamples/00001/'
-    refer_refence = '/root/POV_Surgery/assets/transfer_surgical_Source/texture_rotate'
+    refer_refence = '../grasp_refinement/refined_subsamples/grasp_generation/OUT/'
     #refer_refence_seq = refer_refence.replace('refined_subsamples', 'refined_subsamples_interp')
-    refer_refence_seq = refer_refence # Not sure if this makes sense??
-    
+    refer_refence_seq = '../grasp_refinement/refined_subsamples_interp/voluson_painted_subsamples/00001'
+
+    # Regular expression pattern to match 5-digit numbers
+    pattern = re.compile(r'(\d{5})_(\d{5})_\d+_Hand\.ply')
+
+    # Set to store unique numbers
+    unique_numbers = set()
+
+    # Loop through all files in the directory
+    for filename in os.listdir(refer_refence_seq):
+        # Find all 5-digit numbers in the filename
+        numbers = pattern.findall(filename)
+        # Add the found numbers to the set (duplicates will be ignored)
+        
+        unique_numbers.update(numbers)
+
+    # Convert the set to a list and sort it
+    sorted_unique_numbers = sorted(unique_numbers)
+
+    print("______ SORTED NUMBERS  {}".format(sorted_unique_numbers))
 
     transformed_mesh_name = glob.glob(osp.join(refer_refence, '*Object.ply'))[0]
-    print("_________ transformed_mesh_name _________ {}".format(transformed_mesh_name))
-
-    #frames_info_mat = loadmat(osp.join(refer_refence_seq, 'interpolate.mat'))
-    #frames_info_mat = loadmat(osp.join(refer_refence_seq, 'generate.mat'))
-    frames_info_mat = loadmat(osp.join('/root/POV_Surgery/grasp_generation/logs/grab_new_objects/grasp_generation/OUT', 'interpolate.mat'))
-
-    #print("_____________________frames_info_mat_____{}".format(frames_info_mat))
+    frames_info_mat = loadmat(osp.join(refer_refence_seq, 'interpolate.mat'))
     dict_to_save = {}
 
     #base_source_dir = '/home/ray/Downloads/zju-ls-feng/output/smplx'
     base_source_dir ='/root/POV_Surgery/assets'
+
     # ref_handle = trimesh.load(
     #     ref_handle_name,
     #     process=False)
@@ -74,24 +88,14 @@ def main() -> None:
     #     process=False)
 
     transformed_mesh = trimesh.load(transformed_mesh_name, process=False)
-    print("___ transformed_mesh __________ {}".format(transformed_mesh))
-
     # transformed_mesh_hat = get_alignMesh_as2(np.array(ref_handle.vertices),np.array(ref_whole.vertices),np.array(transformed_mesh.vertices))
     logger.remove()
     logger.add(lambda x: tqdm.write(x, end=''), level=exp_cfg.logger_level.upper(), colorize=True)
-    #exp_cfg.datasets.mesh_folder.data_folder = osp.join(base_source_dir, 'smpl_ply')
-    exp_cfg.datasets.mesh_folder.data_folder = osp.join(base_source_dir)
-    #frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in os.listdir(osp.join(base_source_dir, 'smpl_ply'))]
-    frame_list = [int(temp.split('.')[0]) for temp in os.listdir(osp.join(base_source_dir, 'smpl_ply'))]
-
-    #print(os.listdir(osp.join(base_source_dir)))
-    #frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in os.listdir(osp.join(base_source_dir))]
+    exp_cfg.datasets.mesh_folder.data_folder = osp.join(base_source_dir, 'smpl_ply')
+    frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in os.listdir(osp.join(base_source_dir, 'smpl_ply'))]
     output_folder = osp.expanduser(osp.expandvars(exp_cfg.output_folder))
-
-    frame_list = frame_list[:4]
-    seg_30 = np.random.choice(frame_list, 5)
+    seg_30 = np.random.choice(frame_list, 29)
     seg_30.sort()
-    print(frames_info_mat['save_source_list'][0])
     # seg_30.append(max(frame_list))
     pointer = 0
 
@@ -99,25 +103,30 @@ def main() -> None:
     this_local_index = 0
     all_refer_hand_path = []
 
+    print("______________frames_info_mat['interp_list']_______________________ {}  ".format(frames_info_mat['interp_list']))
+          
     while this_local_index < len(frame_list):
         temp_i = frame_list[this_local_index]
-
+        if pointer >= len(frames_info_mat['interp_list'][0]) or pointer >= len(frames_info_mat['save_source_list'][0]) or pointer >= len(frames_info_mat['save_target_list'][0]):
+                print(f'Pointer is out of range: {pointer}')
+                break
+        
         if temp_i < seg_30[pointer]:
-            temp = frames_info_mat['save_source_list'][0][pointer]
-            temp_path = osp.join(refer_refence, str(temp).zfill(5) + '_Hand.ply')
+            temp_source = frames_info_mat['save_source_list'][0][pointer]
+            temp_path = osp.join(refer_refence, str(temp_source).zfill(5) + '_Hand.ply')
             all_refer_hand_path.append(temp_path)
             this_local_index = this_local_index + 1
         elif this_infer_num < frames_info_mat['interp_list'][0][pointer]:
-            temp = frames_info_mat['save_source_list'][0][pointer]
-            temp_t = frames_info_mat['save_target_list'][0][pointer]
-            #temp_path = osp.join(refer_refence_seq, str(temp).zfill(5) + '_' + str(temp_t).zfill(5) + '_' + str(this_infer_num) + '_Hand.ply')
-            temp_path = osp.join(refer_refence_seq, str(temp).zfill(6) + '_Hand.ply')
+            temp_source = frames_info_mat['save_source_list'][0][pointer]
+            temp_target = frames_info_mat['save_target_list'][0][pointer]
+            temp_path = osp.join(refer_refence_seq, str(temp_source).zfill(5) + '_' + str(temp_target).zfill(5) + '_' + str(
+                this_infer_num) + '_Hand.ply')
             all_refer_hand_path.append(temp_path)
             this_infer_num = this_infer_num + 1
             this_local_index = this_local_index + 1
         elif temp_i > max(seg_30):
-            temp = frames_info_mat['save_target_list'][0][pointer]
-            temp_path = osp.join(refer_refence, str(temp).zfill(5) + '_Hand.ply')
+            temp_target = frames_info_mat['save_target_list'][0][pointer]
+            temp_path = osp.join(refer_refence, str(temp_target).zfill(5) + '_Hand.ply')
             all_refer_hand_path.append(temp_path)
             this_local_index = this_local_index + 1
 
@@ -132,7 +141,7 @@ def main() -> None:
     os.makedirs(output_folder, exist_ok=True)
 
     model_path = exp_cfg.body_model.folder
-    print(model_path)
+
     body_model = build_layer(model_path, **exp_cfg.body_model)
     logger.info(body_model)
     body_model = body_model.to(device=device)
@@ -161,11 +170,15 @@ def main() -> None:
             if torch.is_tensor(batch[key]):
                 batch[key] = batch[key].to(device=device)
         paths = batch['paths']
-        
-        #batch_frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in paths]
-        print("_________ temp _______ {}".format(paths))
-        print("_____ all_refer_hand_path _________ {}".format(all_refer_hand_path))
-        batch_frame_list = [int(temp) for temp in paths]
+        batch_frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in paths]
+
+         # Check if all indices in batch_frame_list exist in all_refer_hand_path
+        all_indices_exist = all(idx < len(all_refer_hand_path) for idx in batch_frame_list)
+        if not all_indices_exist:
+            logger.error("Some indices in batch_frame_list do not exist in all_refer_hand_path.")
+            # Handle this case as needed (e.g., skip these frames or use default values)
+            continue  # Skipping these frames for now
+
         seg_list = all_refer_hand_path[batch_frame_list]
 
         var_dict, additional_dict = run_fitting(exp_cfg, batch, body_model, def_matrix, mask_ids, segment_list=seg_list)
