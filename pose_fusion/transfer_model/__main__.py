@@ -172,14 +172,14 @@ def main() -> None:
         paths = batch['paths']
         batch_frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in paths]
 
-         # Check if all indices in batch_frame_list exist in all_refer_hand_path
-        all_indices_exist = all(idx < len(all_refer_hand_path) for idx in batch_frame_list)
-        if not all_indices_exist:
-            logger.error("Some indices in batch_frame_list do not exist in all_refer_hand_path.")
-            # Handle this case as needed (e.g., skip these frames or use default values)
-            continue  # Skipping these frames for now
+         # Filter batch_frame_list to contain only indices that exist in all_refer_hand_path
+        valid_batch_frame_list = [idx for idx in batch_frame_list if idx < len(all_refer_hand_path)]
 
-        seg_list = all_refer_hand_path[batch_frame_list]
+        if not valid_batch_frame_list:
+            logger.error("No valid indices found in batch_frame_list for this batch.")
+            continue  # Skipping this batch as there are no valid indices
+
+        seg_list = all_refer_hand_path[valid_batch_frame_list]
 
         var_dict, additional_dict = run_fitting(exp_cfg, batch, body_model, def_matrix, mask_ids, segment_list=seg_list)
 
@@ -198,18 +198,21 @@ def main() -> None:
             # this_hand_temp = o3d.io.read_triangle_mesh(seg_list[ii])
             _, fname = osp.split(path)
 
+            print("__________________ generate result folder (smplx_fitted_pkl)_______________________")
             output_path_pkl = osp.join(base_source_dir, 'smplx_fitted_pkl', f'{osp.splitext(fname)[0]}.pkl')
             os.makedirs(osp.dirname(output_path_pkl), exist_ok=True)
             ################################################## change ###########################################################3
             with open(output_path_pkl, 'wb') as f:
                 pickle.dump(out_dict, f)
 
+            print("__________________ generate result folder (s_additional_RT_pkl)_______________________")
             output_path_pkl_addtion = osp.join(base_source_dir, 's_additional_RT_pkl', f'{osp.splitext(fname)[0]}.pkl')
             os.makedirs(osp.dirname(output_path_pkl_addtion), exist_ok=True)
             with open(output_path_pkl_addtion, 'wb') as f:
                 pickle.dump(addtional_RT, f)
 
             output_path = osp.join(base_source_dir, 'smplx_fitted_ply', f'{osp.splitext(fname)[0]}.ply')
+            print("________________ writing results to path '{}'".format(output_path))
             os.makedirs(osp.dirname(output_path), exist_ok=True)
             mesh = np_mesh_to_o3d(var_dict['vertices'][ii], var_dict['faces'])
             o3d.io.write_triangle_mesh(output_path, mesh)
@@ -235,6 +238,7 @@ def main() -> None:
             # o3d.io.write_triangle_mesh(output_path, this_hand_temp)
 
             output_path = osp.join(base_source_dir, 'smplx_fitted_ply_Object', f'{osp.splitext(fname)[0]}.ply')
+            print("________________ writing results to path '{}'".format(output_path))
             os.makedirs(osp.dirname(output_path), exist_ok=True)
             o3d.io.write_triangle_mesh(output_path, mesh1)
         del var_dict, additional_dict, batch

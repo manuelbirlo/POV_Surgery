@@ -217,6 +217,7 @@ def build_vertex_closure_rhand(
     jidx: Optional[int] = None,
     part: Optional[Tensor] = None,
     params_to_opt: Optional[Tensor] = None,
+    batch_size: int = None
 ) -> Callable:
     ''' Builds the closure for the vertex objective
     '''
@@ -237,9 +238,22 @@ def build_vertex_closure_rhand(
         body_model_output = model_forward()
         est_vertices = body_model_output['vertices']
         # gt_vertices = torch.bmm(gt_vertices,params_to_opt['R']) + params_to_opt['T'].tile(1,778,1)
+        # Ensure the correct dimensions for matrix multiplication
+        print("_____ batch_size: {}".format(batch_size))
+        
+        R = params_to_opt[1].view(batch_size, 3, 3)  # Ensure R is [batch_size, 3, 3]
+        T = params_to_opt[2].view(batch_size, 1, 3)  # Ensure T is [batch_size, 1, 3]
+
+        # Ensure gt_vertices is in the correct shape, e.g., [batch_size, num_vertices, 3]
+        if gt_vertices.dim() == 2:
+            gt_vertices = gt_vertices.unsqueeze(0).expand(batch_size, -1, -1)
+
+        # Apply the transformation
+        transformed_gt_vertices = torch.bmm(gt_vertices, R) + T.expand(-1, gt_vertices.size(1), -1)
+
         loss = vertex_loss(
             est_vertices[:, mask_ids.reshape(778)],
-            torch.bmm(gt_vertices,params_to_opt[1]) + params_to_opt[2].tile(1,778,1))
+            transformed_gt_vertices)
         if backward:
             if create_graph:
                 # Use this instead of .backward to avoid GPU memory leaks
@@ -390,8 +404,9 @@ def run_fitting(
         body_model.v_template.detach().cpu().numpy(), body_model.faces[f_sel])
 
     def log_closure():
-        return summary_closure(def_vertices, var_dict, body_model,
-                               mask_ids=mask_ids)
+        return "___"
+        #return summary_closure(def_vertices, var_dict, body_model,
+        #                       mask_ids=mask_ids)
 
     edge_fitting_cfg = exp_cfg.get('edge_fitting', {})
     edge_loss = build_loss(type='vertex-edge', gt_edges=vpe, est_edges=vpe,
@@ -509,6 +524,7 @@ def run_fitting(
         mask_ids=idxs_data['right_hand'],#[transfer_mat_version_mano['forward_transfer']-1],
         per_part=False,
         params_to_opt=[var_dict['right_hand_pose'],additional_dict['R'],additional_dict['T']],
+        batch_size=batch_size
     )
     minimize(optimizer_dict['optimizer'],
              closure,
