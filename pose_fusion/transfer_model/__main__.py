@@ -38,7 +38,7 @@ import glob
 def main() -> None:
     # os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     exp_cfg = parse_args()
-    exp_cfg.batch_size = 500
+    exp_cfg.batch_size = 1 #500
     exp_cfg.body_model.gender = 'male'
     device = torch.device('cuda')
     if not torch.cuda.is_available():
@@ -181,7 +181,10 @@ def main() -> None:
 
         seg_list = all_refer_hand_path[valid_batch_frame_list]
 
-        var_dict, additional_dict = run_fitting(exp_cfg, batch, body_model, def_matrix, mask_ids, segment_list=seg_list)
+        actual_batch_size = batch['vertices'].shape[0]
+        print(f"________________Actual batch size: {actual_batch_size}")
+
+        var_dict, additional_dict = run_fitting(exp_cfg, batch, body_model, def_matrix, mask_ids, segment_list=seg_list, batch_size=actual_batch_size)
 
         for ii, path in enumerate(paths):
             out_dict = {}

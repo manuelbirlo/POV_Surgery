@@ -239,17 +239,23 @@ def build_vertex_closure_rhand(
         est_vertices = body_model_output['vertices']
         # gt_vertices = torch.bmm(gt_vertices,params_to_opt['R']) + params_to_opt['T'].tile(1,778,1)
         # Ensure the correct dimensions for matrix multiplication
-        print("_____ batch_size: {}".format(batch_size))
-        
+       
+        print(f"_____________Using batch_size: {batch_size}")
+        print(f"_____________R shape: {params_to_opt[1].shape}, T shape: {params_to_opt[2].shape}")
+        print(f"_____________gt_vertices shape: {gt_vertices.shape}")
+
         R = params_to_opt[1].view(batch_size, 3, 3)  # Ensure R is [batch_size, 3, 3]
         T = params_to_opt[2].view(batch_size, 1, 3)  # Ensure T is [batch_size, 1, 3]
 
         # Ensure gt_vertices is in the correct shape, e.g., [batch_size, num_vertices, 3]
         if gt_vertices.dim() == 2:
-            gt_vertices = gt_vertices.unsqueeze(0).expand(batch_size, -1, -1)
-
+            gt_vertices_final = gt_vertices.unsqueeze(0).expand(batch_size, -1, -1)
+        else:
+            gt_vertices_final = gt_vertices
+        
+        print("______________ dimension of gt_vertices: {}".format(gt_vertices_final.shape))
         # Apply the transformation
-        transformed_gt_vertices = torch.bmm(gt_vertices, R) + T.expand(-1, gt_vertices.size(1), -1)
+        transformed_gt_vertices = torch.bmm(gt_vertices_final, R) + T.expand(-1, gt_vertices_final.size(1), -1)
 
         loss = vertex_loss(
             est_vertices[:, mask_ids.reshape(778)],
@@ -335,16 +341,13 @@ def get_variables_additional(
 
     device = next(body_model.buffers()).device
 
-
+    print("_____________________ batch size in 'def get_variables_additional': {}".format(batch_size))
 
     var_dict.update(
-        R=torch.eye(
-            3, device=device,
-            dtype=dtype).unsqueeze(0).tile(batch_size, 1, 1),
-        T = torch.zeros(
-        [batch_size, 1,3], device=device, dtype=dtype)
-
+        R=torch.eye(3, device=device, dtype=dtype).repeat(batch_size, 1, 1),
+        T=torch.zeros([batch_size, 1, 3], device=device, dtype=dtype)
     )
+    
     # Toggle gradients to True
     for key, val in var_dict.items():
         val.requires_grad_(True)
@@ -369,7 +372,8 @@ def run_fitting(
     body_model: nn.Module,
     def_matrix: Tensor,
     mask_ids: Optional = None,
-    segment_list = None
+    segment_list = None,
+    batch_size=None
 ) -> Dict[str, Tensor]:
     ''' Runs fitting
     '''
@@ -379,7 +383,10 @@ def run_fitting(
     # faces = batch['faces']
     # frame_list = [int(temp.split('/')[-1].split('.')[0]) for temp in all_path]
 
-    batch_size = len(vertices)
+    # Use the passed batch_size instead of len(vertices)
+    if batch_size is None:
+        batch_size = len(vertices)
+
     dtype, device = vertices.dtype, vertices.device
     summary_steps = exp_cfg.get('summary_steps')
     interactive = exp_cfg.get('interactive')
