@@ -54,7 +54,7 @@ def smooth_camera(pose, ratio = 0.3):
     return R.from_quat(quats).as_euler('xyz',degrees=True)
 
 #base_ply = '/home/ray/Downloads/zju-ls-feng/output/smplx/rotated_body_ply'
-base_ply = '/root/POV_Surgery/assets/transfer_surgical_Source'
+base_ply = '/root/POV_Surgery/assets/rotated_body_ply'
 out_camera = base_ply.replace('rotated_body_ply','texture_rotate')
 os.makedirs(out_camera,exist_ok=True)
 max_1 = 0
