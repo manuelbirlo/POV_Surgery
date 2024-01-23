@@ -11,7 +11,7 @@ import shutil
 from tqdm import tqdm
 
 #ROOT_DIR = '/home/ray/Downloads/zju-ls-feng/output/smplx'
-ROOT_DIR  = '/root/POV_Surgery/assets/transfer_surgical_Source'
+ROOT_DIR  = '/root/POV_Surgery/assets'
 OUT_dir = os.path.join(ROOT_DIR, 'texture_rotate')
 TMP_dir = os.path.join(ROOT_DIR, 'tmp')
 os.makedirs(TMP_dir,exist_ok=True)
@@ -24,13 +24,17 @@ mesh_save = mesh
 # This is the folder that contains the rotated body model .ply that was generated with 'python transfer_pose.py'.
 BASE_mesh = os.path.join(ROOT_DIR, 'rotated_body_ply')
 
+ply_files_count = len([file_name for file_name in os.listdir(BASE_mesh) 
+                       if os.path.isfile(os.path.join(BASE_mesh, file_name)) 
+                          and file_name.endswith('.ply')])
+
 tqdm.write("________________________________________________________________________________________________________________")
 
 all_file_list = []
 #for i in (range(0, 10000)):
-for i in (range(0, 1)): # I use only 1 body .ply file (00000.obj) at the moment.
+for i in (range(0, ply_files_count)): 
     
-    this_mesh = os.path.join(BASE_mesh,str(i).zfill(5)+'.ply') # This has to be a body mesh, for example 00000.obj.
+    this_mesh = os.path.join(BASE_mesh,str(i).zfill(5)+'.ply') 
     
     if not os.path.exists(this_mesh):
          print("continued!  {}".format(this_mesh))

@@ -11,7 +11,8 @@ from slerp_utils import quaternion_from_matrix, quaternion_slerp, quaternion_mat
 #base_dir = '/home/ray/Downloads/zju-ls-feng/output/smplx'
 # Assumption: The body model from /SMPLX_texture/SMPLX_texture/transfer_surgical_Source has been copied into /root/POV_Surgery/assets/transfer_surgical_Source.
 # The model model can be downloaded from https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP (SMPLX_texture.zip)
-base_dir = '/root/POV_Surgery/assets/transfer_surgical_Source'
+#base_dir = '/root/POV_Surgery/assets/transfer_surgical_Source'
+base_dir = '/root/POV_Surgery/assets'
 ######################################3
 
 # The following two directories are being created in this script and don't need to exist upfront.
@@ -21,10 +22,9 @@ os.makedirs(rotated_object_ply,exist_ok=True)
 os.makedirs(rotated_body_ply,exist_ok=True)
 
 # The following two directories should exist upfront and contain objct .ply files and a whole body .ply file. 
+# These two folders were created automatically in the pose_fusion step.
 object_to_be_transfered = os.path.join(base_dir,'smplx_fitted_ply_Object')
 body_to_be_transfered = os.path.join(base_dir, 'smplx_fitted_ply')
-os.makedirs(object_to_be_transfered,exist_ok=True)
-os.makedirs(body_to_be_transfered,exist_ok=True)
 
 # If 'object_to_be_transfered' and 'body_to_be_transfered' contain the same number of files it doesn't matter
 # which folder to choose here, because list_ofPly just iterates over them in order to get the indices.
