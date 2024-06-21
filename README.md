@@ -1,4 +1,8 @@
-# POV-Surgery
+# Grasp Generation via a generative model: A 'POV-Surgery' Derivative
+
+This repo was forked from the already existing [POV-Surgery repo](https://github.com/BatFaceWayne/POV_Surgery) by Rui Wang et al. 
+
+
 ### A Dataset for Egocentric Hand and Tool Pose Estimation During Surgical Activities
 26th International Conference on Medical Image Computing and Computer Assisted Intervention;
 MICCAI 2023,**<span style="color:red;">(Oral)</span>**
