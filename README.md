@@ -21,26 +21,30 @@ A possible docker container installation could look as follows:
 
 3. **Install VcXsrv**: In order to be display graphical applications running on a Linus operating system on a windows computer, you can for example install 'VcXsrv', which is an open-source Windows X Server.
                        VcXsrv can be downloaded from the [official SourceForge page](https://sourceforge.net/projects/vcxsrv/)
-     ***Start VcXsrv*** and use your preferred display settings, for example the default options 'Multiple Windows' and 'Display Number':-1. Then click 'Next' and make sure 'Start no client' is selected. After another click on 'Next' you get to the extra settings which you can leave at the default values. Click on "Finish" to start the X Server. 
-
    
-4. **Get the Dockerfile**: In your browser within this repo website, click on 'Dockerfile' in this repo's root directory (same directory as this README file), navigate to the top right corner of the displayed Dockerfile content, and click on the Download symbol.
+     ***Start VcXsrv*** and use your preferred display settings, for example the default options 'Multiple Windows' and 'Display Number':-1. Then click 'Next' and make sure 'Start no client' is selected. After another click on 'Next' you get to the extra settings which you can leave at the default values. Click on "Finish" to start the X Server.
+        
+   
+5. **Get the Dockerfile**: In your browser within this repo website, click on 'Dockerfile' in this repo's root directory (same directory as this README file), navigate to the top right corner of the displayed Dockerfile content, and click on the Download symbol.
 
-5. **Place the Dockerfile into your desired project directory**:
+6. **Place the Dockerfile into your desired project directory**:
     ```sh
     cd your\project\directory
     ```
 
-6. **Within your project directory, build your Docker image via the `docker build` command**:
+7. **Within your project directory, build your Docker image via the `docker build` command**:
     ```sh
     docker build -t <your-docker-image-name> .
     ```
-    Replace `<your-docker-image-name>` with a suitable name, for example, `nvidia_cuda_118`.
+    Replace `<your-docker-image-name>` with a suitable name, for example, `nvidia_cuda_118`. 
 
-7. **Create your docker container based on the newly created docker image `<your-docker-image-name>`
-8. ```sh
+8. **Create your docker container** based on the newly created docker image `<your-docker-image-name>` via the 'docker run' command: In order to be able to view graphical applications running within your Linux-based docker container on a Windows computer you have to use the '--env="DISPLAY' option.
+   If you want to use available GPUs you can activat this option via the '--gpus' argument, wither select specific GPUs via their number (0, 1, 2, etc.) or use all of them ('--gpus all'): 
+    ```sh
    docker run --name `<your-docker-container-name>` --gpus all --net=host --env="DISPLAY" -it `<your-docker-image-name>`
    ```
+
+
 
 
 
