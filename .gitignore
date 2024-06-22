@@ -5,7 +5,6 @@ __pycache__/
 *$py.class
 
 *.pkl
-*.ply
 *.pt
 *.pyc
 *.jpg
