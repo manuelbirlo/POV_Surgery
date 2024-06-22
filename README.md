@@ -34,7 +34,7 @@ A possible docker container installation could look as follows:
 6. **Within your project directory, build your Docker image via the `docker build` command**:
     ```sh
     docker build -t <your-docker-image-name> .
-   ```sh
+    ```
     Replace `<your-docker-image-name>` with a suitable name, for example, `nvidia_cuda_118`.
 
 7. **Create your docker container based on the newly created docker image `<your-docker-image-name>`
