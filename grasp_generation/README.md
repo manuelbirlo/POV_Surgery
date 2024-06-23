@@ -10,8 +10,12 @@
 [[Paper Page](https://grab.is.tue.mpg.de)] 
 [[Paper](https://arxiv.org/abs/2008.11200) ]
 
-[GrabNet](http://grab.is.tue.mpg.de) is a generative model for 3D hand grasps. Given a 3D object mesh, GrabNet 
-can predict several hand grasps for it. GrabNet has two succesive models, CoarseNet (cVAE) and RefineNet.
+The grasp generation method is based on [GrabNet](http://grab.is.tue.mpg.de), a generative machine learning model for 3D hand pose and shape estimation. 
+GrabNet is able to estimate realistic hand poses and shapes during grasp-based interaction with objects and consists of a sequence of two models: 1.) CoarseNet and 2.) RefineNet:
+- **CoarseNet** is a conditional variational autoencoder (cVAE) that generates an initial grasp based on a [MANO](https://mano.is.tue.mpg.de) hand model and a mesh representation of 3D object to be grasped. 
+- **RefineNet**: After the initial CoarseNet-based grasp pose estimation the grasp gets further refined by a neural network called 'RefineNet' that uses the initial grasp poses in addition to distances between the MAANO hand vertices and the object mesh. 
+
+
 It is trained on a subset (right hand and object only) of [GRAB](http://grab.is.tue.mpg.de) dataset.
 For more details please refer to the [Paper](http://grab.is.tue.mpg.de//uploads/ckeditor/attachments/363/grab_eccv2020.pdf) or the [project website](http://grab.is.tue.mpg.de).
 
