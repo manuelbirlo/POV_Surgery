@@ -1,4 +1,4 @@
-# BrabNet for Pose Generation
+# GrabNet for Pose Generation
 
 This repo was forked from the already existing [POV-Surgery repo](https://github.com/BatFaceWayne/POV_Surgery) by Rui Wang et al. 
 
@@ -44,7 +44,24 @@ A possible docker container installation could look as follows:
    docker run --name `<your-docker-container-name>` --gpus all --net=host --env="DISPLAY" -it `<your-docker-image-name>`
    ```
 
-9. Running Docker images and containers can be managed via the Docker Desktop application, which is mostly self-explanatory when using Docker Desktop's graphical interface. 
+9. **Check status of your Docker container**: Running Docker images and containers can be managed via the Docker Desktop application, which is mostly self-explanatory when using Docker Desktop's graphical interface. You should now verify that the newly created Docker container is running.
+    If you prefer working with a command line prompt, use the following commands to 1.) check that your container is running:
+     ```sh
+      docker ps
+    ```
+    ... and enter your newly created docker container:
+    ```sh
+    docker exec <your-docker-image-name> /bin/bash
+    ```
+11. In order to use all benefits of a code editor like Visual Studio Code (VS Code) when working with GitGub repos and Python coding within a running Docker container, the following can be done:
+     * Install Visual Studio Code from [the official Visual Studio Code website](https://code.visualstudio.com/)
+     * Connect to your running Docker container:
+       - Install the 'Remote - Containers' extention in VS Code
+       - Open the Coomman Palette in VS Code (press 'Ctrl+Shift+P')
+       - Type 'Remote-Containers: Attach to Running Container.." and select it
+       - Now a list of all running containers appears. Select your newly created container in order to connect to it.
+       - VS Code will then open in a new window which is connected to your running Docker container
+       - Now the filesystem of your container is available from your VS Code explorer, which allows you to develop code, open terminals, run commands and launch graphical applications from termainals (since you have VcXsrv installed and running). 
 
 
 
