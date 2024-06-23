@@ -1,4 +1,4 @@
-# Grasp Generation via a generative model: A 'POV-Surgery' Derivative
+# BrabNet for Pose Generation
 
 This repo was forked from the already existing [POV-Surgery repo](https://github.com/BatFaceWayne/POV_Surgery) by Rui Wang et al. 
 
@@ -43,6 +43,8 @@ A possible docker container installation could look as follows:
     ```sh
    docker run --name `<your-docker-container-name>` --gpus all --net=host --env="DISPLAY" -it `<your-docker-image-name>`
    ```
+
+9. Running Docker images and containers can be managed via the Docker Desktop application, which is mostly self-explanatory when using Docker Desktop's graphical interface. 
 
 
 
