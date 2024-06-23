@@ -332,7 +332,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
                                                              rndrotate=True,
                                                              scale=0.001)
             if 'generate' in inmat:
-                verts_obj, mesh_obj, rotmat = load_obj_verts('../assets/voluson_painted.ply',
+                verts_obj, mesh_obj, rotmat = load_obj_verts('../assets/ClariusC3_2c_painted_1_downscaled.ply',
                                                              all_generated['rotmat'][index_temp] @ Ro.from_euler('z', 0,
                                                                                                     degrees=True).as_matrix(),
                                                              rndrotate=True,
@@ -343,8 +343,32 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
             #                                              all_generated['rotmat'][index_temp] @ Ro.from_euler('z', 0, degrees=True).as_matrix(), rndrotate=True,
             #                                              scale=0.001)
 
+            # Original code that causes error if .ply file has inconsistent number of vertices that are != 3000
             obj_pc_TTT = np.concatenate((verts_obj, np.ones((3000, 1)) * 0.2248), 1)
             obj_pc_TTT = torch.from_numpy(obj_pc_TTT).permute(1, 0).view(1, 4, 3000).float().to(device)
+
+            """   
+            # ---  Modified code to handle dynamic number of vertices ----
+            num_verts = verts_obj.shape[0]  # Actual number of vertices
+            # obj_pc_TTT is the concatenated array from before with the actual number of vertices
+            obj_pc_TTT = np.concatenate((verts_obj, np.ones((num_verts, 1)) * 0.2248), axis=1)
+
+            # Convert numpy array to PyTorch tensor
+            obj_pc_TTT = torch.from_numpy(obj_pc_TTT).float()
+
+            # Pad the tensor to have 3000 points if necessary
+            if num_verts < 3000:
+                padding = torch.zeros((3000 - num_verts, 4))  # Assuming the padding value for the last column should be zero
+                padding[:, -1] = 0.2248  # Set the last column to the fixed value if needed
+                obj_pc_TTT = torch.cat([obj_pc_TTT, padding], dim=0)
+
+            # Make sure it's permuted and unsqueezed to match the expected input shape for the network
+            obj_pc_TTT = obj_pc_TTT.permute(1, 0).unsqueeze(0)  # The shape is now (1, 4, 3000)
+
+            # Send to the appropriate device
+            obj_pc_TTT = obj_pc_TTT.to(device)
+            """
+
             this_global_orient = all_generated['global_orient'][[index_temp], :]
             this_joints = all_generated['joints'][[index_temp], :]
             this_joints = torch.from_numpy(this_joints).float().to(device)
@@ -409,6 +433,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
                     loss = 20 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss
                 elif 'generate' in inmat:
                     PENE_TRA = 0.02
+                    #loss = 20 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss
                     loss = 20 * contact_loss + 0 * consistency_loss + 300 * penetr_loss + kp_weight * kp_loss
                 else:
                     PENE_TRA = 0.01
@@ -493,7 +518,7 @@ def main(args, model, cmap_model, device, rh_mano, rh_faces, inmat=None,using_co
             exterior = [sign == -1][0] & nonzero
             contact = ~exterior
             sample_contact = contact.sum() > 0
-            print(sample_contact)
+            print("sample_contact: {}".format(sample_contact))
             # simulation displacement
 
             try:

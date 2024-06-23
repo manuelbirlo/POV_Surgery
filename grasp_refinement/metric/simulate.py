@@ -64,7 +64,7 @@ def process_sample(sample_idx, sample, save_gif_folder=None, save_obj_folder=Non
 
 def run_simulation(hand_verts, hand_faces, obj_verts, obj_faces,
                    conn_id=None, vhacd_exe=None, sample_idx=None,
-                   save_video=True, save_video_path='/home/rui/projects/sp2_ws/GraspTTA/refined_subsamples/friem_subsample/video',
+                   save_video=True, save_video_path='/root/POV_Surgery/grasp_refinement/probe_subsample_video',
                    simulation_step=1 / 240, num_iterations=35,
                    object_friction=3, hand_friction=3,
                    hand_restitution=0, object_restitution=0.5,
