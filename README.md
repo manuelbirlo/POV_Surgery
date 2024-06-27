@@ -1,6 +1,6 @@
 # GrabNet for Pose Generation
 
-![Camera sphere concept](assets/images/camera_sphere.gif)
+<img src="assets/images/GrabNet_Voluson_grasps.gif" width="250" height="250" alt="Description">
 
 This repo was forked from the already existing [POV-Surgery repo](https://github.com/BatFaceWayne/POV_Surgery) by Rui Wang et al. 
 
