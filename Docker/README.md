@@ -19,7 +19,7 @@ A possible docker container installation could look as follows:
      ***Start VcXsrv*** and use your preferred display settings, for example the default options 'Multiple Windows' and 'Display Number':-1. Then click 'Next' and make sure 'Start no client' is selected. After another click on 'Next' you get to the extra settings which you can leave at the default values. Click on "Finish" to start the X Server.
         
    
-5. **Get the Dockerfile**: In your browser within this repo website, click on 'Dockerfile' in this repo's root directory (same directory as this README file), navigate to the top right corner of the displayed Dockerfile content, and click on the Download symbol.
+5. **Get the Dockerfile**: Download the Dockerfile directly from this folder (../Dokcer/Dockerfile) or use the Dockerfile in your cloned repository and place it in the desired directory from where you want to manage your Docker container.
 
 6. **Place the Dockerfile into your desired project directory**:
     ```sh
