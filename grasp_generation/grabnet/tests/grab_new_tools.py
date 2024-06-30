@@ -238,7 +238,7 @@ def grab_new_objs(grabnet, objs_path, rotation_angles, rot=True, n_samples=10, s
         object_data['verts_object'] = torch.cat(object_data['verts_object'])
 
          # Create the directory to save the results
-        save_dir = os.path.join(grabnet.cfg.work_dir, 'grab_new_objects')
+        save_dir = os.path.join('./OUT', 'generated_hand_grasp_meshes')
         
         # Log the saving process
         grabnet.logger(f'#################\n'
