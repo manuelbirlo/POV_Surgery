@@ -17,6 +17,9 @@ Newer Apple computers using the Silicon chip may be incompatible with Blender's 
 git clone https://github.com/manuelbirlo/POV_Surgery (TODO: adjust url as soon as repo has been renamed!!!)
 ```
 
+# Generate grasps using GrabNet
+
+Follow the instructions here: [How to setup grasp generation using GrabNet](grasp_generation/README.md)
 
 
 
