@@ -6,7 +6,9 @@
 
 
 
-![GRAB-Teaser](images/grasp_generation_pipeline.png)
+<img src="images/grasp_generation_pipeline.png" alt="GRAB-Teaser" width="1300"/>
+
+
 [[Paper Page](https://grab.is.tue.mpg.de)] 
 [[Paper](https://arxiv.org/abs/2008.11200) ]
 
