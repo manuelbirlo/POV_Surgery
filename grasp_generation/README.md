@@ -8,10 +8,6 @@
 
 <img src="images/grasp_generation_pipeline.png" alt="GRAB-Teaser" width="1300"/>
 
-
-[[Paper Page](https://grab.is.tue.mpg.de)] 
-[[Paper](https://arxiv.org/abs/2008.11200) ]
-
 The grasp generation method is based on [GrabNet](http://grab.is.tue.mpg.de), a generative machine learning model for 3D hand pose and shape estimation. 
 GrabNet is able to estimate realistic hand poses and shapes during grasp-based interaction with objects and consists of a sequence of two models: 1.) CoarseNet and 2.) RefineNet:
 - **CoarseNet** is a conditional variational autoencoder (cVAE) that generates an initial grasp based on a [MANO](https://mano.is.tue.mpg.de) hand model and a mesh representation of 3D object to be grasped. 
@@ -43,11 +39,40 @@ Firstly go to the grasp_generation folder:
   cd grasp_generation
   ```
 - #### Generate grasps for input objects(.ply.,.obj, .stl files etc.)
-Change the scale accordingly. For examples, the default scale is 1, which means the input object is in m scale. Change it to 1000 if your input is in mm.
+Change the scale (optional argument --scale) accordingly. The default scale is 1, which means the input object is in m scale. Change it to 1000 if your input is in mm.
+We've provided the Voluson ultrasound probe mesh namend 'voluson_ultrasound_probe.ply' which is used to generate plausible right hand grasps:
 
   ```Shell
 python ./grabnet/tests/grab_new_tools.py --obj-path /root/POV_Surgery/assets/ultrasound_probe_models/voluson_ultrasound_probe.ply --rhm-path ../data/bodymodel/mano/MANO_RIGHT.pkl
    ```
+The 'grab_new_tools.py' script generates initial hand grasps using GrabNet whose grasp information is stored in the following files:
+```bash
+    GrabNet
+        ├── grabnet
+        │    │
+        │    ├── OUT
+        │    │     └── generate.mat
+        │    │     └── meshes.pt
+```
+The original POV-Surgery grasp generation and rendering pipeline contains subsequent steps in which generate.mat and meshes.pt will be required. In our proposed method, we focus on the initial grasp generation step only in order to generate a generate.mat file, which will serve as an input to our grasp rendering pipeline: [HUP-3D renderer](https://github.com/manuelbirlo/HUP-3D_renderer). However, we also generate meshes of the Hand, the object and combined hand grasp meshes (.ply files) in the grab_new_tools.py script that are stored in the ./OUT/generated_hand_grasp_meshes folder and look as follows:
+```bash
+    GrabNet
+        ├── grabnet
+        │    │
+        │    ├── OUT
+        │    │     │
+        │    │     ├── generated_hand_grasp_meshes
+                                                 └── 000000_Combined.ply
+                                                 └── 000000_Hand.ply
+                                                 └── 000000_Object.ply
+                                                 └── 000001_Combined.ply
+                                                 └── 000001_Hand.ply
+                                                 └── 000001_Object.ply
+                                                       .
+                                                       .
+
+```
+You can view the generated meshes for example with [MeshLab](https://www.meshlab.net/) by simply importing all generated *_Combined.ply meshes into MeshLab's graphical user interface. You will notice that some of the generated grasps are not plausible due to hand-object interpeneratration. Simply note down the identification numbers of your desired plausbile grasps. You will need these grasp indices when you render your desired grasps using the [HUP-3D renderer](https://github.com/manuelbirlo/HUP-3D_renderer).
 
 - #### Export diverse samples and select desired grasps
 change the input accordingly depending the .pt file generated above.
