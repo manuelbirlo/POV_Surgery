@@ -46,8 +46,7 @@ Firstly go to the grasp_generation folder:
 Change the scale accordingly. For examples, the default scale is 1, which means the input object is in m scale. Change it to 1000 if your input is in mm.
 
   ```Shell
-python ./grabnet/tests/grab_new_tools.py    --obj-path /home/ray/Downloads/disk_recon_handle.ply\
-                                                       --rhm-path ../data/bodymodel/mano/MANO_RIGHT.pkl
+python ./grabnet/tests/grab_new_tools.py --obj-path /root/POV_Surgery/assets/ultrasound_probe_models/voluson_ultrasound_probe.ply --rhm-path ../data/bodymodel/mano/MANO_RIGHT.pkl
    ```
 
 - #### Export diverse samples and select desired grasps
