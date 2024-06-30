@@ -72,22 +72,11 @@ The original POV-Surgery grasp generation and rendering pipeline contains subseq
                                                        .
 
 ```
-You can view the generated meshes for example with [MeshLab](https://www.meshlab.net/) by simply importing all generated *_Combined.ply meshes into MeshLab's graphical user interface. You will notice that some of the generated grasps are not plausible due to hand-object interpeneratration. Simply note down the identification numbers of your desired plausbile grasps. You will need these grasp indices when you render your desired grasps using the [HUP-3D renderer](https://github.com/manuelbirlo/HUP-3D_renderer).
+You can view the generated meshes for example with [MeshLab](https://www.meshlab.net/) by simply importing all generated *_Combined.ply meshes into MeshLab's graphical user interface. You will notice that some of the generated grasps are not plausible due to hand-object interpeneratration. Just make a note of the IDs of your desired plausible handles (displayed in the .ply names you've imported). You will need these IDs when rendering your desired handles using the [HUP-3D renderer](https://github.com/manuelbirlo/HUP-3D_renderer).
 
-- #### Export diverse samples and select desired grasps
-change the input accordingly depending the .pt file generated above.
-```Shell
-python ./grabnet/tests/export_meshes.py 
-```
-That should generate a folder named "test_meshes" in the 'OUT' directory. The folder contains the generated grasps in .ply format. We suggest using Meshlab to visualize the grasps and to select desired outputs. And note down the id of the desired grasps.
-    
-- #### Resampling near desired state
-change the 'wanted_id' list accordingly. For example, if you want to resample the 1st and 3rd grasp in the test_meshes folder, change the 'wanted_id' to [1,3]. The resampled grasps will be saved in the 'OUT' folder.
- 
-```Shell
-python ./grabnet/tests/subsampling.py   --obj-path /home/ray/Downloads/disk_recon_handle.ply\
-        --rhm-path  ../data/bodymodel/mano/MANO_RIGHT.pkl
-```
+Since we generated the grasp related .ply files directly in the grab_new_tools.py script, there is no need to run the subsequent script 'export_meshes.py' of the original POV-Surgery pipeline this code is based on. 
+
+Nevertheless, the original POV-Surgery pipeline contains further grip refinement steps that may not have further improved grip results in our case, but we encourage users to try them out anyway: [POV-Surgery's grasp refinement steps](https://github.com/BatFaceWayne/POV_Surgery/tree/main/grasp_refinement)
 
 ## License
 Software Copyright License for **non-commercial scientific research purposes**.
