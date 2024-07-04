@@ -14,7 +14,7 @@ Newer Apple computers using the Silicon chip may be incompatible with Blender's 
 
 # Cloning this repo (download the source code)
 ```sh
-git clone https://github.com/manuelbirlo/POV_Surgery (TODO: adjust url as soon as repo has been renamed!!!)
+git clone https://github.com/manuelbirlo/US_GrabNet_grasp_generation.git
 ```
 
 # Generate grasps using GrabNet
