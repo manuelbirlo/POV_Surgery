@@ -47,7 +47,7 @@ Then please download the data.zip from the google drive folder of the original P
                      └── ...
                      └── tests
                            └── ...
-                           └── grab_new_tools.py
+                           └── **grab_new_tools.py**
     ├── grasp_refinement
     ├── pose_fusion
     ├── pre_rendering
