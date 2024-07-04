@@ -17,6 +17,53 @@ Newer Apple computers using the Silicon chip may be incompatible with Blender's 
 git clone https://github.com/manuelbirlo/US_GrabNet_grasp_generation.git
 ```
 
+## Project structure
+Please register yourself at [SMPL-X](https://smpl-x.is.tue.mpg.de/login.php) and [MANO](https://mano.is.tue.mpg.de/login.php) to use their dependencies. Please read and accept their liscenses to use SMPL-X and MANO models. There are different versions of manopth. We have included the implementation of [mano](https://github.com/otaheri/MANO) in our repo already. Then please download the data.zip from [POV-Surgery](https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP?usp=drive_link), unzip it and put in the POV_Surgery folder. We have prepared all the dependencies required and the final structure should look like this:
+
+```bash
+    POV_Surgery
+    ├── data
+    │    │
+    │    ├── sim_room
+    │          └── room_sim.obj
+    │          └── room_sim.obj.mtl
+    │          └── textured_output.jpg
+    │    │
+    │    └── bodymodel
+    │          │
+    │          └── smplx_to_smpl.pkl
+    │          └── ...
+    │          └── mano
+    │                └── MANO_RIGHT.pkl
+    │          └── body_models
+    │                └── smpl
+    │                └── smplx
+    ├── grasp_generation
+    ├── grasp_refinement
+    ├── pose_fusion
+    ├── pre_rendering
+    ├── blender_rendering
+    ├── HandOccNet_ft
+    └── vis_data
+
+```
+## Recommendation: Using a Conda Environment
+We recommend create a python 3.8 environment with conda. Install [pytorch](https://pytorch.org) and [torchvision](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjR4K2m8NmBAxVNSfEDHeMhCNAQFnoECBgQAQ&url=https%3A%2F%2Fpytorch.org%2Fvision%2F&usg=AOvVaw1cAB7MRIgRgtMiD3UKEL-9&opi=89978449) that suits you operation system. For example, if you are using cuda 11.8 version, you could use:
+
+```Shell
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+```
+Then you should install [pytorch3d](https://github.com/facebookresearch/pytorch3d/tree/main) that suits your python and cuda version. An example could be found here: 
+
+```Shell
+pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py38_cu113_pyt1110/download.html
+```
+Then install the dependencies to finish the environment set up following the requiremesnts.sh. 
+```Shell
+sh requirements.sh
+```
+You could refer to the colab demo for hint to set the environment.
+
 # Generate grasps using GrabNet
 
 Follow the instructions here: [How to setup grasp generation using GrabNet](grasp_generation/README.md)
