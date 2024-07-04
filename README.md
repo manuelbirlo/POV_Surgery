@@ -84,7 +84,7 @@ If you encounter a problem during the dependencies installation with 'sh require
 ```Shell
 (sudo) apt-get install libboost-all-dev
 ```
-...
+
 
 # Generate grasps using GrabNet
 
