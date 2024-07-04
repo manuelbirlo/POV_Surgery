@@ -78,7 +78,13 @@ Then install the dependencies to finish the environment set up following the req
 ```Shell
 sh requirements.sh
 ```
-You could refer to the colab demo for hint to set the environment.
+
+If you encounter a problem during the dependencies installation with 'sh requirements.sh' that says "fatal error: boost/config.hpp: "No such file or directory", you have to install the boost libraties with: 
+
+```Shell
+(sudo) apt-get install libboost-all-dev
+```
+...
 
 # Generate grasps using GrabNet
 
