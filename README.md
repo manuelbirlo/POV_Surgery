@@ -20,7 +20,8 @@ git clone https://github.com/manuelbirlo/US_GrabNet_grasp_generation.git
 ## Project structure
 Please register yourself at [SMPL-X](https://smpl-x.is.tue.mpg.de/login.php) and [MANO](https://mano.is.tue.mpg.de/login.php) to use their dependencies. Please read and accept their liscenses to use SMPL-X and MANO models. There are different versions of manopth. We have included the implementation of [mano](https://github.com/otaheri/MANO) in our repo already.
 
-Then please download the data.zip from the google drive folder of the original POV-Surgery project ([POV-Surgery](https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP?usp=drive_link)), unzip it and put in the POV_Surgery folder. We have prepared all the dependencies required and the final structure should look like this:
+Then please download the data.zip from the google drive folder of the original POV-Surgery project ([POV-Surgery](https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP?usp=drive_link)), unzip it and put in the US_GrabNet_grasp_generation folder. 
+The final repo structure should look like this:
 
 ```bash
     US_GrabNet_grasp_generation
@@ -56,6 +57,7 @@ Then please download the data.zip from the google drive folder of the original P
     └── vis_data
 
 ```
+The focus of this repo is the use of the grab_new_tools.py (shown and highlighted in the file hierarchy above).
 
 ## Please note: 
 We only consider the “grab_generation” part in our method, with optional “grab_refinement” and “pose_fusion” following.
