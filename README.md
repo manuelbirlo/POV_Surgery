@@ -23,7 +23,7 @@ Please register yourself at [SMPL-X](https://smpl-x.is.tue.mpg.de/login.php) and
 Then please download the data.zip from the google drive folder of the original POV-Surgery project ([POV-Surgery](https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP?usp=drive_link)), unzip it and put in the POV_Surgery folder. We have prepared all the dependencies required and the final structure should look like this:
 
 ```bash
-    POV_Surgery
+    US_GrabNet_grasp_generation
     ├── data
     │    │
     │    ├── sim_room
@@ -41,6 +41,13 @@ Then please download the data.zip from the google drive folder of the original P
     │                └── smpl
     │                └── smplx
     ├── grasp_generation
+    │         │
+              └── ...
+              └── grabnet
+                     └── ...
+                     └── tests
+                           └── ...
+                           └── grab_new_tools.py
     ├── grasp_refinement
     ├── pose_fusion
     ├── pre_rendering
