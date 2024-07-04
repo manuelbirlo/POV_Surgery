@@ -1,4 +1,4 @@
-# GrabNet for Pose Generation
+# GrabNet for Ultrasound Probe Pose Generation
 
 <img src="assets/images/GrabNet_Voluson_grasps.gif" width="250" height="250" alt="Description"> <img src="assets/images/GrabNet_single_Voluson_grasp1.gif" width="250" height="250" alt="Description"> <img src="assets/images/GrabNet_single_Voluson_grasp2.gif" width="250" height="250" alt="Description">
 
