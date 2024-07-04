@@ -18,7 +18,9 @@ git clone https://github.com/manuelbirlo/US_GrabNet_grasp_generation.git
 ```
 
 ## Project structure
-Please register yourself at [SMPL-X](https://smpl-x.is.tue.mpg.de/login.php) and [MANO](https://mano.is.tue.mpg.de/login.php) to use their dependencies. Please read and accept their liscenses to use SMPL-X and MANO models. There are different versions of manopth. We have included the implementation of [mano](https://github.com/otaheri/MANO) in our repo already. Then please download the data.zip from [POV-Surgery](https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP?usp=drive_link), unzip it and put in the POV_Surgery folder. We have prepared all the dependencies required and the final structure should look like this:
+Please register yourself at [SMPL-X](https://smpl-x.is.tue.mpg.de/login.php) and [MANO](https://mano.is.tue.mpg.de/login.php) to use their dependencies. Please read and accept their liscenses to use SMPL-X and MANO models. There are different versions of manopth. We have included the implementation of [mano](https://github.com/otaheri/MANO) in our repo already.
+
+Then please download the data.zip from the google drive folder of the original POV-Surgery project ([POV-Surgery](https://drive.google.com/drive/folders/1nSDig2cEHscCPgG10-VcSW3Q1zKge4tP?usp=drive_link)), unzip it and put in the POV_Surgery folder. We have prepared all the dependencies required and the final structure should look like this:
 
 ```bash
     POV_Surgery
@@ -47,6 +49,11 @@ Please register yourself at [SMPL-X](https://smpl-x.is.tue.mpg.de/login.php) and
     └── vis_data
 
 ```
+
+## Please note: 
+We only consider the “grab_generation” part in our method, with optional “grab_refinement” and “pose_fusion” following.
+We do not consider the Blender-related rendering steps “pre_rendering” and “blender_rendering” as well as the “HandOccNet_ft” and “vis_data” steps for neural network evaluation and result visualization. After the “pose_generation” step, we proceed with our Blender-based “grab_rendering” method [HUP-3D_renderer](https://github.com/manuelbirlo/HUP-3D_renderer). However, we encourage users to try out the “grab_rendering” concept of POV-Surgery and contribute new methods in this area.
+
 ## Recommendation: Using a Conda Environment
 We recommend create a python 3.8 environment with conda. Install [pytorch](https://pytorch.org) and [torchvision](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjR4K2m8NmBAxVNSfEDHeMhCNAQFnoECBgQAQ&url=https%3A%2F%2Fpytorch.org%2Fvision%2F&usg=AOvVaw1cAB7MRIgRgtMiD3UKEL-9&opi=89978449) that suits you operation system. For example, if you are using cuda 11.8 version, you could use:
 
